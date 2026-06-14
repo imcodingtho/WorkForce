@@ -244,7 +244,32 @@ const translations = {
     start_managing: "Start managing your team today",
     full_name: "Full Name",
     email: "Email",
-    password: "Password"
+    password: "Password",
+
+    // Upgrade Page
+    upgrade_hero_title: "Upgrade Your Workforce Management",
+    upgrade_hero_sub: "Unlock advanced features and manage unlimited employees.",
+    free_plan: "Free Plan",
+    pro_plan: "Pro Plan",
+    max_5_employees: "Up to 5 employees",
+    attendance_tracking: "Attendance tracking",
+    payroll_tracking: "Payroll tracking",
+    loan_management: "Loan management",
+    unlimited_employees: "Unlimited employees",
+    advanced_analytics: "Advanced analytics",
+    reports: "Reports",
+    future_premium_features: "Future premium features",
+    current_plan_free: "Current Plan: Free",
+    current_plan_pro: "Current Plan: Pro",
+    upgrade_to_pro: "Upgrade to Pro",
+    downgrade_to_free: "Downgrade to Free",
+    payments_coming_soon_title: "Payments Coming Soon",
+    payments_coming_soon_text: "Payments are coming soon. If you are interested in Pro access, contact us.",
+    contact_enterprise: "Need enterprise solutions or custom requirements?",
+    per_month: "/month",
+    recommended: "Recommended",
+    ok: "OK",
+    view_pricing_plans: "View Pricing Plans"
   },
   hi: {
     // Attendance & Profile
@@ -485,7 +510,32 @@ const translations = {
     start_managing: "आज ही अपनी टीम का प्रबंधन शुरू करें",
     full_name: "पूरा नाम",
     email: "ईमेल",
-    password: "पासवर्ड"
+    password: "पासवर्ड",
+
+    // Upgrade Page
+    upgrade_hero_title: "अपने कार्यबल प्रबंधन को अपग्रेड करें",
+    upgrade_hero_sub: "उन्नत सुविधाओं को अनलॉक करें और असीमित कर्मचारियों का प्रबंधन करें।",
+    free_plan: "फ्री प्लान",
+    pro_plan: "प्रो प्लान",
+    max_5_employees: "अधिकतम 5 कर्मचारी",
+    attendance_tracking: "उपस्थिति ट्रैकिंग",
+    payroll_tracking: "पेरोल ट्रैकिंग",
+    loan_management: "ऋण प्रबंधन",
+    unlimited_employees: "असीमित कर्मचारी",
+    advanced_analytics: "उन्नत विश्लेषण",
+    reports: "रिपोर्ट्स",
+    future_premium_features: "भविष्य की प्रीमियम विशेषताएं",
+    current_plan_free: "वर्तमान योजना: फ्री",
+    current_plan_pro: "वर्तमान योजना: प्रो",
+    upgrade_to_pro: "प्रो में अपग्रेड करें",
+    downgrade_to_free: "फ्री में डाउनग्रेड करें",
+    payments_coming_soon_title: "भुगतान जल्द ही आ रहे हैं",
+    payments_coming_soon_text: "भुगतान जल्द ही आ रहे हैं। यदि आप प्रो एक्सेस में रुचि रखते हैं, तो हमसे संपर्क करें।",
+    contact_enterprise: "उद्यम समाधान या कस्टम आवश्यकताओं की आवश्यकता है?",
+    per_month: "/महीना",
+    recommended: "अनुशंसित",
+    ok: "ठीक है",
+    view_pricing_plans: "मूल्य निर्धारण योजनाएं देखें"
   },
   es: {
     // Attendance & Profile
@@ -726,7 +776,32 @@ const translations = {
     start_managing: "Comience a gestionar su equipo hoy",
     full_name: "Nombre Completo",
     email: "Correo Electrónico",
-    password: "Contraseña"
+    password: "Contraseña",
+
+    // Upgrade Page
+    upgrade_hero_title: "Actualice su gestión de personal",
+    upgrade_hero_sub: "Desbloquee funciones avanzadas y gestione empleados ilimitados.",
+    free_plan: "Plan Gratuito",
+    pro_plan: "Plan Pro",
+    max_5_employees: "Hasta 5 empleados",
+    attendance_tracking: "Seguimiento de asistencia",
+    payroll_tracking: "Seguimiento de nómina",
+    loan_management: "Gestión de préstamos",
+    unlimited_employees: "Empleados ilimitados",
+    advanced_analytics: "Análisis avanzados",
+    reports: "Informes",
+    future_premium_features: "Futuras funciones premium",
+    current_plan_free: "Plan Actual: Gratis",
+    current_plan_pro: "Plan Actual: Pro",
+    upgrade_to_pro: "Actualizar a Pro",
+    downgrade_to_free: "Degradar a Gratis",
+    payments_coming_soon_title: "Pagos próximamente",
+    payments_coming_soon_text: "Los pagos estarán disponibles pronto. Si está interesado en el acceso Pro, contáctenos.",
+    contact_enterprise: "¿Necesita soluciones empresariales o requisitos personalizados?",
+    per_month: "/mes",
+    recommended: "Recomendado",
+    ok: "Aceptar",
+    view_pricing_plans: "Ver planes de precios"
   },
   fr: {
     // Attendance & Profile
@@ -967,7 +1042,32 @@ const translations = {
     start_managing: "Commencez à gérer votre équipe dès aujourd'hui",
     full_name: "Nom Complet",
     email: "E-mail",
-    password: "Mot de passe"
+    password: "Mot de passe",
+
+    // Upgrade Page
+    upgrade_hero_title: "Mettez à niveau votre gestion des effectifs",
+    upgrade_hero_sub: "Débloquez des fonctionnalités avancées et gérez un nombre illimité d'employés.",
+    free_plan: "Plan Gratuit",
+    pro_plan: "Plan Pro",
+    max_5_employees: "Jusqu'à 5 employés",
+    attendance_tracking: "Suivi des présences",
+    payroll_tracking: "Suivi de la paie",
+    loan_management: "Gestion des prêts",
+    unlimited_employees: "Employés illimités",
+    advanced_analytics: "Analyses avancées",
+    reports: "Rapports",
+    future_premium_features: "Futures fonctionnalités premium",
+    current_plan_free: "Plan Actuel : Gratuit",
+    current_plan_pro: "Plan Actuel : Pro",
+    upgrade_to_pro: "Mettre à niveau vers Pro",
+    downgrade_to_free: "Rétrograder vers le plan Gratuit",
+    payments_coming_soon_title: "Paiements à venir",
+    payments_coming_soon_text: "Les paiements arrivent bientôt. Si vous êtes intéressé par l'accès Pro, contactez-nous.",
+    contact_enterprise: "Besoin de solutions d'entreprise ou d'exigences personnalisées ?",
+    per_month: "/mois",
+    recommended: "Recommandé",
+    ok: "OK",
+    view_pricing_plans: "Voir les tarifs"
   },
   de: {
     // Attendance & Profile
@@ -1208,7 +1308,32 @@ const translations = {
     start_managing: "Beginnen Sie noch heute mit der Verwaltung Ihres Teams",
     full_name: "Vollständiger Name",
     email: "E-Mail",
-    password: "Passwort"
+    password: "Passwort",
+
+    // Upgrade Page
+    upgrade_hero_title: "Upgrade für Ihr Personalmanagement",
+    upgrade_hero_sub: "Schalten Sie erweiterte Funktionen frei und verwalten Sie unbegrenzt Mitarbeiter.",
+    free_plan: "Kostenloser Plan",
+    pro_plan: "Pro-Plan",
+    max_5_employees: "Bis zu 5 Mitarbeiter",
+    attendance_tracking: "Anwesenheitserfassung",
+    payroll_tracking: "Gehaltsabrechnung",
+    loan_management: "Kreditverwaltung",
+    unlimited_employees: "Unbegrenzt Mitarbeiter",
+    advanced_analytics: "Erweiterte Analysen",
+    reports: "Berichte",
+    future_premium_features: "Zukünftige Premium-Funktionen",
+    current_plan_free: "Aktueller Plan: Kostenlos",
+    current_plan_pro: "Aktueller Plan: Pro",
+    upgrade_to_pro: "Auf Pro upgraden",
+    downgrade_to_free: "Auf Kostenlos downgraden",
+    payments_coming_soon_title: "Zahlungen in Kürze verfügbar",
+    payments_coming_soon_text: "Zahlungen sind in Kürze verfügbar. Wenn Sie an einem Pro-Zugang interessiert sind, kontaktieren Sie uns.",
+    contact_enterprise: "Benötigen Sie Unternehmenslösungen oder maßgeschneiderte Anforderungen?",
+    per_month: "/Monat",
+    recommended: "Empfohlen",
+    ok: "OK",
+    view_pricing_plans: "Tarife anzeigen"
   }
 };
 
@@ -1236,16 +1361,27 @@ function t(key, vars = {}) {
 function translateDOM() {
   const lang = getLanguage();
   
-  // Translate standard textContent elements
+  // Translate standard textContent or innerHTML elements
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    el.textContent = t(key);
+    const text = t(key);
+    if (text.includes('<') && text.includes('>')) {
+      el.innerHTML = text;
+    } else {
+      el.textContent = text;
+    }
   });
 
   // Translate inputs placeholders
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     const key = el.getAttribute('data-i18n-placeholder');
     el.setAttribute('placeholder', t(key));
+  });
+
+  // Update all currency symbols dynamically!
+  const symbol = getCurrencySymbol();
+  document.querySelectorAll('.currency').forEach(el => {
+    el.textContent = symbol;
   });
 
   // Special UI dynamic elements that require manual updates
@@ -1274,10 +1410,14 @@ function changeLanguage(lang) {
   // Force DOM re-translation
   translateDOM();
   
-  // Update Settings page selections if visible
+  // Update both Settings and Login page selections if visible
   const langSelect = document.getElementById('settings-lang');
   if (langSelect) {
     langSelect.value = lang;
+  }
+  const authLangSelect = document.getElementById('auth-lang');
+  if (authLangSelect) {
+    authLangSelect.value = lang;
   }
 
   // Refresh active screen state

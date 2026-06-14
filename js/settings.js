@@ -24,6 +24,9 @@ function renderSettings() {
   const currSelect = document.getElementById('settings-currency');
   if (langSelect) langSelect.value = getLanguage();
   if (currSelect) currSelect.value = getCurrency();
+
+  const planSelect = document.getElementById('settings-plan');
+  if (planSelect) planSelect.value = getCurrentPlan().plan;
 }
 
 /**
@@ -32,6 +35,17 @@ function renderSettings() {
  */
 function changeCurrency(curr) {
   saveCurrency(curr);
+
+  // Update both Settings and Login page selections if visible
+  const currSelect = document.getElementById('settings-currency');
+  if (currSelect) {
+    currSelect.value = curr;
+  }
+  const authCurrSelect = document.getElementById('auth-currency');
+  if (authCurrSelect) {
+    authCurrSelect.value = curr;
+  }
+
   // Re-render current active tab to reflect changes
   if (currentPage === 'dashboard') renderDashboard();
   else if (currentPage === 'employees') renderEmployees();
@@ -68,7 +82,7 @@ function setTheme(theme, silent) {
 /**
  * Validates display name changes and saves configuration profiles to caches.
  */
-function saveSettings() {
+function handleSaveSettings() {
   const name = document.getElementById('settings-name').value.trim();
   if (name && currentUser) {
     currentUser.name = name;
@@ -81,6 +95,23 @@ function saveSettings() {
   saveSettings({ name });
   showToast('Settings saved!', 'success');
 }
+
+/**
+ * Switch the subscription plan for testing/simulation.
+ * @param {string} planVal - The plan key ('free', 'pro').
+ */
+function changePlanSimulation(planVal) {
+  setCurrentPlan(planVal);
+  
+  if (currentPage === 'dashboard') renderDashboard();
+  if (currentPage === 'settings') renderSettings();
+  if (currentPage === 'upgrade') renderUpgradePage();
+  if (currentPage === 'reports') renderReportsPage();
+
+  showToast('Subscription plan simulated: ' + planVal.toUpperCase(), 'success');
+}
+
+
 
 /**
  * Displays confirm alert overlay dialogues before resetting local storage cache databases.

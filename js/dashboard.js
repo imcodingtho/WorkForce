@@ -16,17 +16,17 @@ function renderDashboard() {
   const totalPayroll = employees.reduce((s, e) => s + calcMonthlyEquivalent(e), 0);
 
   document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-paid').innerHTML = `<span class="currency">$</span>${totalPaidAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  document.getElementById('stat-paid').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${totalPaidAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
   document.getElementById('stat-paid-count').textContent = paid.length + ' employee' + (paid.length !== 1 ? 's' : '') + ' paid';
-  document.getElementById('stat-pending').innerHTML = `<span class="currency">$</span>${totalPendingAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  document.getElementById('stat-pending').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${totalPendingAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
   document.getElementById('stat-pending-count').textContent = unpaid.length + ' awaiting payment';
-  document.getElementById('stat-total-payroll').innerHTML = `<span class="currency">$</span>${totalPayroll.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  document.getElementById('stat-total-payroll').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${totalPayroll.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
 
   // Loan stats
   const ls = getLoanStats();
-  document.getElementById('stat-loans-total').innerHTML = `<span class="currency">$</span>${ls.totalIssued.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  document.getElementById('stat-loans-total').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${ls.totalIssued.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
   document.getElementById('stat-loans-count').textContent = ls.totalLoans + ' loan' + (ls.totalLoans !== 1 ? 's' : '') + ' total';
-  document.getElementById('stat-loans-outstanding').innerHTML = `<span class="currency">$</span>${ls.totalOutstanding.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  document.getElementById('stat-loans-outstanding').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${ls.totalOutstanding.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
   document.getElementById('stat-loans-employees').textContent = ls.employeeCount;
   document.getElementById('stat-loans-active-count').textContent = ls.totalActive + ' active loan' + (ls.totalActive !== 1 ? 's' : '');
 
@@ -155,5 +155,26 @@ function renderDashboard() {
         `;
       }).join('');
     }
+  }
+
+  // Payment Overview lock overlay if not Pro
+  const paymentCard = document.getElementById('payment-overview').parentElement;
+  if (!isProUser()) {
+    paymentCard.classList.add('pro-locked');
+    if (!paymentCard.querySelector('.pro-lock-overlay')) {
+      const overlay = document.createElement('div');
+      overlay.className = 'pro-lock-overlay';
+      overlay.innerHTML = `
+        <i class="fa-solid fa-lock"></i>
+        <div class="pro-lock-title">Advanced Analytics</div>
+        <div class="pro-lock-subtitle">Unlock on Pro Plan</div>
+        <button class="btn btn-primary btn-sm" onclick="navigate('upgrade')" style="margin-top: 10px; width: auto; font-size: 0.78rem;">Upgrade</button>
+      `;
+      paymentCard.appendChild(overlay);
+    }
+  } else {
+    paymentCard.classList.remove('pro-locked');
+    const overlay = paymentCard.querySelector('.pro-lock-overlay');
+    if (overlay) overlay.remove();
   }
 }

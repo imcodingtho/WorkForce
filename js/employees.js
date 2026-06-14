@@ -327,6 +327,18 @@ function saveEmployee() {
   const paid = document.getElementById('emp-paid').value === 'paid';
   const notes = document.getElementById('emp-notes').value.trim();
 
+  // Enforce Free plan employee limits (max 5)
+  if (!id && !isProUser() && employees.length >= 5) {
+    openPlanModal(
+      'Free Plan Limit Reached',
+      'Free plan limit reached. Upgrade to Pro for unlimited employees.',
+      'fa-users-slash',
+      true
+    );
+    closeEmployeeModal();
+    return;
+  }
+
   if (!name) { showToast('Name is required.', 'error'); return; }
   if (!role) { showToast('Role is required.', 'error'); return; }
   if (isNaN(salary) || salary < 0) { showToast('Please enter a valid salary.', 'error'); return; }

@@ -79,7 +79,9 @@ function navigate(page) {
     salary: 'Salary Tracker',
     loans: 'Loans & Advances',
     notes: 'Notes',
-    settings: 'Settings'
+    settings: 'Settings',
+    upgrade: 'Upgrade',
+    reports: 'Reports'
   };
   document.getElementById('topbar-title').textContent = titles[page] || 'WorkForce';
 
@@ -89,6 +91,8 @@ function navigate(page) {
   else if (page === 'loans') renderLoans();
   else if (page === 'notes') renderNotes();
   else if (page === 'settings') renderSettings();
+  else if (page === 'upgrade') renderUpgradePage();
+  else if (page === 'reports') renderReportsPage();
 
   closeSidebar();
 }
@@ -138,13 +142,21 @@ const currencySymbols = {
 };
 
 /**
+ * Returns the currency symbol of the currently set currency preference.
+ * @returns {string} Currency symbol.
+ */
+function getCurrencySymbol() {
+  const curr = getCurrency();
+  return currencySymbols[curr] || '₹';
+}
+
+/**
  * Formats a number as dynamic currency based on settings.
  * @param {number} n - The raw number.
  * @returns {string} Formatted currency string.
  */
 function formatCurrency(n) {
-  const curr = getCurrency();
-  const symbol = currencySymbols[curr] || '₹';
+  const symbol = getCurrencySymbol();
   if (isNaN(n) || n === null || n === undefined) return symbol + '0';
   return symbol + Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
@@ -273,6 +285,7 @@ document.addEventListener('keydown', e => {
     closeLoanHistoryModal();
     closeConfirm();
     closeSidebar();
+    closePlanModal();
     if (typeof closeProfileModal === 'function') closeProfileModal();
     if (typeof closeRecordPaymentModal === 'function') closeRecordPaymentModal();
     if (typeof closeMarkModal === 'function') closeMarkModal();
@@ -320,4 +333,80 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e.target === e.currentTarget) closeMarkModal();
     });
   }
+  const planOverlay = document.getElementById('plan-modal-overlay');
+  if (planOverlay) {
+    planOverlay.addEventListener('click', e => {
+      if (e.target === e.currentTarget) closePlanModal();
+    });
+  }
 });
+
+/**
+ * Renders active status states on the Upgrade Pricing page.
+ */
+function renderUpgradePage() {
+  const isPro = isProUser();
+  const freeBadge = document.getElementById('free-plan-badge');
+  const proBadge = document.getElementById('pro-active-badge');
+  const proBtn = document.getElementById('upgrade-pro-btn');
+
+  if (freeBadge && proBadge && proBtn) {
+    if (isPro) {
+      freeBadge.textContent = t('downgrade_to_free');
+      freeBadge.style.cursor = 'pointer';
+      freeBadge.style.borderStyle = 'solid';
+      freeBadge.style.color = 'var(--red)';
+      freeBadge.style.borderColor = 'rgba(248, 113, 113, 0.3)';
+      freeBadge.setAttribute('onclick', 'changePlanSimulation("free")');
+
+      proBadge.style.display = '';
+      proBadge.textContent = t('current_plan_pro');
+      proBtn.style.display = 'none';
+    } else {
+      freeBadge.textContent = t('current_plan_free');
+      freeBadge.style.cursor = 'default';
+      freeBadge.style.borderStyle = 'dashed';
+      freeBadge.style.color = 'var(--text3)';
+      freeBadge.style.borderColor = 'var(--border2)';
+      freeBadge.removeAttribute('onclick');
+
+      proBadge.style.display = 'none';
+      proBtn.style.display = '';
+      proBtn.textContent = t('upgrade_to_pro');
+    }
+  }
+}
+
+/**
+ * Handles upgrade payment alert message click action.
+ */
+function handleUpgradeClick() {
+  openPlanModal(
+    t('payments_coming_soon_title'),
+    t('payments_coming_soon_text'),
+    'fa-crown',
+    false
+  );
+}
+
+/**
+ * Plan Modal dialog helpers.
+ */
+function openPlanModal(title, text, iconClass = 'fa-crown', showUpgradeBtn = true) {
+  const titleEl = document.getElementById('plan-modal-title');
+  const textEl = document.getElementById('plan-modal-text');
+  const iconEl = document.getElementById('plan-modal-icon');
+  const navBtnEl = document.getElementById('plan-modal-nav-btn');
+  const overlayEl = document.getElementById('plan-modal-overlay');
+
+  if (titleEl) titleEl.textContent = title;
+  if (textEl) textEl.textContent = text;
+  if (iconEl) iconEl.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+  if (navBtnEl) navBtnEl.style.display = showUpgradeBtn ? '' : 'none';
+  if (overlayEl) overlayEl.classList.add('active');
+}
+
+function closePlanModal() {
+  const overlayEl = document.getElementById('plan-modal-overlay');
+  if (overlayEl) overlayEl.classList.remove('active');
+}

@@ -20,51 +20,80 @@
       <div class="auth-logo-text">WorkForce</div>
     </div>
     <div class="auth-tab-row">
-      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
-      <button class="auth-tab" onclick="switchAuthTab('signup')">Create Account</button>
+      <button class="auth-tab active" onclick="switchAuthTab('login')" data-i18n="sign_in">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')" data-i18n="create_account">Create Account</button>
     </div>
 
     <!-- LOGIN FORM -->
     <div id="login-form">
-      <div class="auth-title">Welcome back</div>
-      <div class="auth-subtitle">Sign in to manage your workforce</div>
+      <div class="auth-title" data-i18n="welcome_back">Welcome back</div>
+      <div class="auth-subtitle" data-i18n="sign_in_manage">Sign in to manage your workforce</div>
       <div class="auth-error" id="login-error"></div>
       <div class="form-group">
-        <label class="form-label">Email</label>
+        <label class="form-label" data-i18n="email">Email</label>
         <input type="email" class="form-input" id="login-email" placeholder="you@company.com" />
       </div>
       <div class="form-group">
-        <label class="form-label">Password</label>
-        <input type="password" class="form-input" id="login-password" placeholder="Your password" />
+        <label class="form-label" data-i18n="password">Password</label>
+        <input type="password" class="form-input" id="login-password" data-i18n-placeholder="password" placeholder="Your password" />
       </div>
       <button class="btn btn-primary" onclick="handleLogin()">
-        <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+        <i class="fa-solid fa-arrow-right-to-bracket"></i> <span data-i18n="sign_in">Sign In</span>
       </button>
-      <div style="margin-top:18px;text-align:center;font-size:0.82rem;color:var(--text3)">
+      <div style="margin-top:18px;text-align:center;font-size:0.82rem;color:var(--text3)" data-i18n="demo_credentials">
         Demo: <strong style="color:var(--text2)">demo@workforce.app / demo1234</strong>
       </div>
     </div>
 
     <!-- SIGNUP FORM -->
     <div id="signup-form" style="display:none">
-      <div class="auth-title">Create account</div>
-      <div class="auth-subtitle">Start managing your team today</div>
+      <div class="auth-title" data-i18n="create_account">Create account</div>
+      <div class="auth-subtitle" data-i18n="start_managing">Start managing your team today</div>
       <div class="auth-error" id="signup-error"></div>
       <div class="form-group">
-        <label class="form-label">Full Name</label>
-        <input type="text" class="form-input" id="signup-name" placeholder="Your full name" />
+        <label class="form-label" data-i18n="full_name">Full Name</label>
+        <input type="text" class="form-input" id="signup-name" data-i18n-placeholder="full_name" placeholder="Your full name" />
       </div>
       <div class="form-group">
-        <label class="form-label">Email</label>
+        <label class="form-label" data-i18n="email">Email</label>
         <input type="email" class="form-input" id="signup-email" placeholder="you@company.com" />
       </div>
       <div class="form-group">
-        <label class="form-label">Password</label>
-        <input type="password" class="form-input" id="signup-password" placeholder="Min 6 characters" />
+        <label class="form-label" data-i18n="password">Password</label>
+        <input type="password" class="form-input" id="signup-password" data-i18n-placeholder="password" placeholder="Min 6 characters" />
       </div>
       <button class="btn btn-primary" onclick="handleSignup()">
-        <i class="fa-solid fa-user-plus"></i> Create Account
+        <i class="fa-solid fa-user-plus"></i> <span data-i18n="create_account">Create Account</span>
       </button>
+    </div>
+
+    <!-- Preferences Dropdown (Easy Toggle) -->
+    <div class="auth-preferences" style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px;">
+      <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+          <label class="form-label" style="font-size: 0.72rem;" data-i18n="language">Language</label>
+          <select class="form-input select-input" id="auth-lang" onchange="changeLanguage(this.value)" style="padding: 7px 10px; font-size: 0.8rem; width: 100%;">
+            <option value="en">English</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+            <option value="es">Español (Spanish)</option>
+            <option value="fr">Français (French)</option>
+            <option value="de">Deutsch (German)</option>
+          </select>
+        </div>
+        <div style="flex: 1;">
+          <label class="form-label" style="font-size: 0.72rem;" data-i18n="currency">Currency</label>
+          <select class="form-input select-input" id="auth-currency" onchange="changeCurrency(this.value)" style="padding: 7px 10px; font-size: 0.8rem; width: 100%;">
+            <option value="INR">INR (₹)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="AED">AED (د.إ)</option>
+            <option value="CAD">CAD (C$)</option>
+            <option value="AUD">AUD (A$)</option>
+            <option value="JPY">JPY (¥)</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -87,6 +116,9 @@
       <button class="nav-item active" onclick="navigate('dashboard')" data-page="dashboard">
         <i class="fa-solid fa-chart-pie"></i> Dashboard
       </button>
+      <button class="nav-item" onclick="navigate('upgrade')" data-page="upgrade">
+        <i class="fa-solid fa-gem"></i> Upgrade
+      </button>
       <div class="nav-section-label">Management</div>
       <button class="nav-item" onclick="navigate('employees')" data-page="employees">
         <i class="fa-solid fa-users"></i> Employees
@@ -97,6 +129,9 @@
       <button class="nav-item" onclick="navigate('loans')" data-page="loans">
         <i class="fa-solid fa-hand-holding-dollar"></i> Loans & Advances
         <span class="nav-badge" id="active-loans-badge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" onclick="navigate('reports')" data-page="reports">
+        <i class="fa-solid fa-chart-column"></i> Reports
       </button>
       <button class="nav-item" onclick="navigate('notes')" data-page="notes">
         <i class="fa-solid fa-sticky-note"></i> Notes
@@ -309,7 +344,7 @@
           <option value="no">No Active Loan</option>
         </select>
         <div class="salary-range-wrap">
-          <span>$</span>
+          <span class="currency">$</span>
           <input type="number" id="filter-salary-min" placeholder="Min" min="0" oninput="renderEmployees()" title="Min Salary" />
           <span>–</span>
           <input type="number" id="filter-salary-max" placeholder="Max" min="0" oninput="renderEmployees()" title="Max Salary" />
@@ -526,6 +561,34 @@
               <div class="theme-swatch swatch-minimal"></div>
               <div class="theme-label">Minimal</div>
             </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-title"><i class="fa-solid fa-sliders" style="margin-right:8px;color:var(--accent)"></i>System Preferences</div>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label">Language</label>
+              <select class="form-input select-input" id="settings-lang" onchange="changeLanguage(this.value)" style="width: 100%;">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="es">Español (Spanish)</option>
+                <option value="fr">Français (French)</option>
+                <option value="de">Deutsch (German)</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label">Currency</label>
+              <select class="form-input select-input" id="settings-currency" onchange="changeCurrency(this.value)" style="width: 100%;">
+                <option value="INR">INR (₹)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="AED">AED (د.إ)</option>
+                <option value="CAD">CAD (C$)</option>
+                <option value="AUD">AUD (A$)</option>
+                <option value="JPY">JPY (¥)</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -543,9 +606,107 @@
             <label class="form-label">Display Name</label>
             <input type="text" class="form-input" id="settings-name" placeholder="Your name" />
           </div>
+          <div class="form-group" style="max-width:320px">
+            <label class="form-label">Subscription Plan</label>
+            <select class="form-input select-input" id="settings-plan" onchange="changePlanSimulation(this.value)" style="width: 100%;">
+              <option value="free">Free Plan (Max 5 employees)</option>
+              <option value="pro">Pro Plan (Unlimited)</option>
+            </select>
+          </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-primary btn-sm" onclick="saveSettings()"><i class="fa-solid fa-save"></i> Save Changes</button>
+            <button class="btn btn-primary btn-sm" onclick="handleSaveSettings()"><i class="fa-solid fa-save"></i> Save Changes</button>
             <button class="btn btn-danger btn-sm" onclick="confirmClearData()"><i class="fa-solid fa-trash"></i> Clear All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         UPGRADE PAGE
+         ====================================================== -->
+    <div class="page" id="page-upgrade">
+      <div class="upgrade-hero" style="text-align: center; margin-bottom: 40px; padding: 20px 0;">
+        <h1 style="font-family: var(--font-display); font-size: 2.2rem; margin-bottom: 12px; color: var(--text);" data-i18n="upgrade_hero_title">Upgrade Your Workforce Management</h1>
+        <p style="color: var(--text2); font-size: 1.05rem; max-width: 600px; margin: 0 auto;" data-i18n="upgrade_hero_sub">Unlock advanced features and manage unlimited employees.</p>
+      </div>
+
+      <div class="pricing-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 800px; margin: 0 auto 40px;">
+        <!-- FREE PLAN CARD -->
+        <div class="pricing-card" style="background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; display: flex; flex-direction: column; position: relative;">
+          <div style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 8px;" data-i18n="free_plan">Free Plan</div>
+          <div style="font-size: 2.2rem; font-weight: 700; margin-bottom: 20px; color: var(--text);"><span class="currency">₹</span>0<span style="font-size: 0.9rem; color: var(--text2); font-weight: 400;" data-i18n="per_month">/month</span></div>
+          <ul style="list-style: none; margin-bottom: 30px; display: flex; flex-direction: column; gap: 12px; font-size: 0.92rem; color: var(--text2); flex: 1;">
+            <li><i class="fa-solid fa-circle-check" style="color: var(--green); margin-right: 8px;"></i> <span data-i18n="max_5_employees">Up to 5 employees</span></li>
+            <li><i class="fa-solid fa-circle-check" style="color: var(--green); margin-right: 8px;"></i> <span data-i18n="attendance_tracking">Attendance tracking</span></li>
+            <li><i class="fa-solid fa-circle-check" style="color: var(--green); margin-right: 8px;"></i> <span data-i18n="payroll_tracking">Payroll tracking</span></li>
+            <li><i class="fa-solid fa-circle-check" style="color: var(--green); margin-right: 8px;"></i> <span data-i18n="loan_management">Loan management</span></li>
+          </ul>
+          <div class="plan-status-badge" id="free-plan-badge" style="text-align: center; font-weight: 600; padding: 10px; border-radius: var(--radius-sm); border: 1px dashed var(--border2); color: var(--text3);" data-i18n="current_plan_free">Current Plan: Free</div>
+        </div>
+
+        <!-- PRO PLAN CARD -->
+        <div class="pricing-card featured" style="background: var(--bg2); border: 2px solid var(--accent); border-radius: var(--radius); padding: 32px; display: flex; flex-direction: column; position: relative; box-shadow: var(--shadow-lg);">
+          <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; padding: 4px 12px; border-radius: 99px; letter-spacing: 0.05em;" data-i18n="recommended">Recommended</div>
+          <div style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 8px;" data-i18n="pro_plan">Pro Plan</div>
+          <div style="font-size: 2.2rem; font-weight: 700; margin-bottom: 20px; color: var(--accent);"><span class="currency">₹</span>2,499<span style="font-size: 0.9rem; color: var(--text2); font-weight: 400;" data-i18n="per_month">/month</span></div>
+          <ul style="list-style: none; margin-bottom: 30px; display: flex; flex-direction: column; gap: 12px; font-size: 0.92rem; color: var(--text2); flex: 1;">
+            <li><i class="fa-solid fa-circle-check" style="color: var(--accent); margin-right: 8px;"></i> <span data-i18n="unlimited_employees">Unlimited employees</span></li>
+            <li><i class="fa-solid fa-circle-check" style="color: var(--accent); margin-right: 8px;"></i> <span data-i18n="advanced_analytics">Advanced analytics</span></li>
+            <li><i class="fa-solid fa-circle-check" style="color: var(--accent); margin-right: 8px;"></i> <span data-i18n="reports">Reports</span></li>
+            <li><i class="fa-solid fa-circle-check" style="color: var(--accent); margin-right: 8px;"></i> <span data-i18n="future_premium_features">Future premium features</span></li>
+          </ul>
+          <button class="btn btn-primary" id="upgrade-pro-btn" onclick="handleUpgradeClick()" style="padding: 12px;" data-i18n="upgrade_to_pro">Upgrade to Pro</button>
+          <div class="plan-status-badge" id="pro-active-badge" style="display: none; text-align: center; font-weight: 600; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--accent); color: var(--accent); background: rgba(var(--accent-rgb), 0.08);" data-i18n="current_plan_pro">Current Plan: Pro</div>
+        </div>
+      </div>
+
+      <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; text-align: center; max-width: 800px; margin: 0 auto;">
+        <h3 style="font-family: var(--font-display); font-size: 1.15rem; margin-bottom: 12px; color: var(--text);" data-i18n="contact_enterprise">Need enterprise solutions or custom requirements?</h3>
+        <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; font-size: 0.9rem; color: var(--text2);">
+          <span><i class="fa-solid fa-envelope" style="color: var(--accent); margin-right: 6px;"></i> support@workforce.app</span>
+          <span><i class="fa-solid fa-globe" style="color: var(--accent); margin-right: 6px;"></i> www.workforce.app</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         REPORTS PAGE
+         ====================================================== -->
+    <div class="page" id="page-reports">
+      <div id="reports-locked-state" style="display: none;">
+        <div class="card" style="text-align: center; max-width: 500px; margin: 60px auto; padding: 40px 32px;">
+          <i class="fa-solid fa-lock" style="font-size: 3.5rem; color: var(--accent); margin-bottom: 20px;"></i>
+          <h2 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 12px; color: var(--text);">Reports Section (Pro Feature)</h2>
+          <p style="color: var(--text2); font-size: 0.95rem; line-height: 1.6; margin-bottom: 28px;">
+            Upgrade to the Pro Plan to unlock employee attendance reports, loans tracking registers, and exports.
+          </p>
+          <button class="btn btn-primary" onclick="navigate('upgrade')">Upgrade to Pro</button>
+        </div>
+      </div>
+
+      <div id="reports-active-state" style="display: none;">
+        <div class="toolbar" style="margin-bottom: 20px;">
+          <select class="select-input" id="report-type" onchange="renderReport()">
+            <option value="payroll">Monthly Payroll Report</option>
+            <option value="attendance">Monthly Attendance Report</option>
+            <option value="loans">Outstanding Loans Report</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="exportActiveReport()"><i class="fa-solid fa-file-export"></i> Export Report</button>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div class="section-title" id="report-title">Monthly Payroll Report</div>
+          </div>
+          <div class="table-wrap">
+            <table id="reports-table">
+              <!-- Rendered dynamically -->
+            </table>
+            <div id="reports-empty" class="empty-state" style="display:none">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+              <h3>No report records found</h3>
+              <p>Add employees or log records to populate report data.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -749,6 +910,28 @@
     <div class="confirm-footer">
       <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
       <button class="btn btn-danger" id="confirm-btn" onclick="confirmAction()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN MODAL -->
+<div class="modal-overlay" id="plan-modal-overlay">
+  <div class="modal" style="max-width:440px; text-align:center;">
+    <div class="modal-header">
+      <div class="modal-title" id="plan-modal-title">Upgrade to Pro</div>
+      <div class="modal-close" onclick="closePlanModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <div style="padding: 24px 20px;">
+      <div id="plan-modal-icon" style="font-size: 3rem; color: var(--accent); margin-bottom: 16px;">
+        <i class="fa-solid fa-crown"></i>
+      </div>
+      <p id="plan-modal-text" style="font-size: 1.02rem; color: var(--text); line-height: 1.5; margin-bottom: 24px;">
+        Payments are coming soon. If you are interested in Pro access, contact us.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn btn-primary" onclick="closePlanModal()">OK</button>
+        <button class="btn btn-ghost" onclick="closePlanModal(); navigate('upgrade');" id="plan-modal-nav-btn">View Pricing Plans</button>
+      </div>
     </div>
   </div>
 </div>
@@ -969,6 +1152,7 @@
 <script src="js/payroll.js"></script>
 <script src="js/loans.js"></script>
 <script src="js/settings.js"></script>
+<script src="js/reports.js"></script>
 
 <!-- Main Page Initialization Loader -->
 <script>

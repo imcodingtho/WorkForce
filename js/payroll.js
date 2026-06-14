@@ -154,12 +154,12 @@ function renderSalary() {
     totalDeductions += loanDeduct + attnDetails.deduction;
   });
 
-  document.getElementById('sal-paid').innerHTML = `<span class="currency">$</span>${paidAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  document.getElementById('sal-paid').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${paidAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
   document.getElementById('sal-paid-n').textContent = employees.filter(e => e.paid).length + ' employee' + (employees.filter(e => e.paid).length !== 1 ? 's' : '');
-  document.getElementById('sal-pending').innerHTML = `<span class="currency">$</span>${pendingAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  document.getElementById('sal-pending').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${pendingAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
   document.getElementById('sal-pending-n').textContent = employees.filter(e => !e.paid).length + ' employee' + (employees.filter(e => !e.paid).length !== 1 ? 's' : '');
-  document.getElementById('sal-total').innerHTML = `<span class="currency">$</span>${totalAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
-  document.getElementById('sal-deductions').innerHTML = `<span class="currency">$</span>${totalDeductions.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  document.getElementById('sal-total').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${totalAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  document.getElementById('sal-deductions').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${totalDeductions.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
 
   const tbody = document.getElementById('salary-tbody');
   const empty = document.getElementById('salary-empty');

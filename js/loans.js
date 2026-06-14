@@ -143,9 +143,9 @@ function renderLoans() {
   const ls = getLoanStats();
 
   // Update loan statistics cards UI elements
-  document.getElementById('loans-stat-total').innerHTML = `<span class="currency">$</span>${ls.totalIssued.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  document.getElementById('loans-stat-total').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${ls.totalIssued.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
   document.getElementById('loans-stat-count').textContent = ls.totalLoans + ' loan' + (ls.totalLoans !== 1 ? 's' : '') + ' issued';
-  document.getElementById('loans-stat-outstanding').innerHTML = `<span class="currency">$</span>${ls.totalOutstanding.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  document.getElementById('loans-stat-outstanding').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${ls.totalOutstanding.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
   document.getElementById('loans-stat-active').textContent = ls.totalActive;
   document.getElementById('loans-stat-completed').textContent = ls.totalCompleted;
 
@@ -201,7 +201,7 @@ function renderLoans() {
             <div class="loan-progress-bar-fill ${loan.status === 'completed' ? 'loan-done' : ''}" style="width:${pct}%"></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:0.74rem;color:var(--text3);margin-top:3px">
-            <span>$0</span>
+            <span>${getCurrencySymbol()}0</span>
             <span style="color:${loan.status === 'active' ? 'var(--orange)' : 'var(--green)'}">${formatCurrency(loan.remainingBalance)} remaining</span>
             <span>${formatCurrency(loan.amount)}</span>
           </div>

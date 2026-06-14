@@ -97,6 +97,25 @@ function handleSignup() {
 function loginUser(user) {
   currentUser = user;
   saveSession(user);
+
+  // Copy pre-login preferences to user-scoped storage if not exists
+  const userSettingsKey = 'wf_settings_' + user.email;
+  if (!localStorage.getItem(userSettingsKey)) {
+    localStorage.setItem(userSettingsKey, JSON.stringify({ name: user.name }));
+  }
+  const userThemeKey = 'wf_theme_' + user.email;
+  if (!localStorage.getItem(userThemeKey)) {
+    localStorage.setItem(userThemeKey, localStorage.getItem('wf_theme') || 'dark');
+  }
+  const userCurrKey = 'wf_currency_' + user.email;
+  if (!localStorage.getItem(userCurrKey)) {
+    localStorage.setItem(userCurrKey, localStorage.getItem('wf_currency') || 'INR');
+  }
+  const userLangKey = 'wf_language_' + user.email;
+  if (!localStorage.getItem(userLangKey)) {
+    localStorage.setItem(userLangKey, localStorage.getItem('wf_language') || 'en');
+  }
+
   employees = getEmployees(user.email);
   // Migrate old employees without loans/payments arrays
   employees = employees.map(e => ({
@@ -119,7 +138,7 @@ function handleLogout() {
   currentUser = null;
   employees = [];
   document.getElementById('app-screen').classList.remove('active');
-  document.getElementById('app-screen').style.display = '';
+  document.getElementById('app-screen').style.display = 'none';
   document.getElementById('auth-screen').style.display = '';
   showToast('Logged out successfully.', 'info');
 }

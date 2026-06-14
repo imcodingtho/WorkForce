@@ -140,7 +140,8 @@ function saveLoan(empId, loan) {
  * @returns {Object} Settings object.
  */
 function getSettings() {
-  const raw = localStorage.getItem(SETTINGS_KEY);
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  const raw = localStorage.getItem(SETTINGS_KEY + '_' + targetEmail);
   return raw ? JSON.parse(raw) : {};
 }
 
@@ -149,7 +150,8 @@ function getSettings() {
  * @param {Object} settings - Settings configuration to persist.
  */
 function saveSettings(settings) {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  localStorage.setItem(SETTINGS_KEY + '_' + targetEmail, JSON.stringify(settings));
 }
 
 /**
@@ -157,7 +159,8 @@ function saveSettings(settings) {
  * @returns {string} Theme key.
  */
 function getTheme() {
-  return localStorage.getItem(THEME_KEY) || 'dark';
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  return localStorage.getItem(THEME_KEY + '_' + targetEmail) || localStorage.getItem(THEME_KEY) || 'dark';
 }
 
 /**
@@ -165,6 +168,8 @@ function getTheme() {
  * @param {string} theme - Selected theme name.
  */
 function saveTheme(theme) {
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  localStorage.setItem(THEME_KEY + '_' + targetEmail, theme);
   localStorage.setItem(THEME_KEY, theme);
 }
 
@@ -173,7 +178,8 @@ function saveTheme(theme) {
  * @returns {string} Currency key.
  */
 function getCurrency() {
-  return localStorage.getItem('wf_currency') || 'INR';
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  return localStorage.getItem('wf_currency_' + targetEmail) || localStorage.getItem('wf_currency') || 'INR';
 }
 
 /**
@@ -181,6 +187,8 @@ function getCurrency() {
  * @param {string} curr - Selected currency.
  */
 function saveCurrency(curr) {
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  localStorage.setItem('wf_currency_' + targetEmail, curr);
   localStorage.setItem('wf_currency', curr);
 }
 
@@ -189,7 +197,8 @@ function saveCurrency(curr) {
  * @returns {string} Language code.
  */
 function getLanguage() {
-  return localStorage.getItem('wf_language') || 'en';
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  return localStorage.getItem('wf_language_' + targetEmail) || localStorage.getItem('wf_language') || 'en';
 }
 
 /**
@@ -197,6 +206,8 @@ function getLanguage() {
  * @param {string} lang - Language code.
  */
 function saveLanguage(lang) {
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  localStorage.setItem('wf_language_' + targetEmail, lang);
   localStorage.setItem('wf_language', lang);
 }
 
@@ -222,4 +233,35 @@ function saveSession(user) {
  */
 function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+}
+
+/**
+ * Retrieves the current subscription plan for the active user.
+ * @returns {Object} Plan object.
+ */
+function getCurrentPlan() {
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  const raw = localStorage.getItem('wf_plan_' + targetEmail);
+  if (!raw) {
+    return { plan: 'free' };
+  }
+  return JSON.parse(raw);
+}
+
+/**
+ * Persists the subscription plan key for the active user.
+ * @param {string} planStr - Subscription plan name ('free', 'pro').
+ */
+function setCurrentPlan(planStr) {
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  localStorage.setItem('wf_plan_' + targetEmail, JSON.stringify({ plan: planStr }));
+}
+
+/**
+ * Checks if the current active plan is 'pro'.
+ * @returns {boolean} True if Pro.
+ */
+function isProUser() {
+  const currentPlan = getCurrentPlan();
+  return currentPlan && currentPlan.plan === 'pro';
 }
