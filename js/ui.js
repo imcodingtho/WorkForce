@@ -16,12 +16,12 @@ function startApp() {
   document.getElementById('app-screen').style.display = 'flex';
   document.getElementById('app-screen').classList.add('active');
 
-  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+  const savedTheme = getTheme();
   setTheme(savedTheme, true);
 
   updateUserUI();
 
-  const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  const settings = getSettings();
   if (settings.name) {
     document.getElementById('settings-name').value = settings.name;
   }

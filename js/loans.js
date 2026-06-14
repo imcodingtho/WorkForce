@@ -56,6 +56,15 @@ function calcNextRepaymentDate(loan) {
 }
 
 /**
+ * Calculates the total repaid amount of a loan.
+ * @param {Object} loan - Loan object.
+ * @returns {number} Repaid amount.
+ */
+function getLoanRepaidAmount(loan) {
+  return (parseFloat(loan.amount) || 0) - (parseFloat(loan.remainingBalance) || 0);
+}
+
+/**
  * Calculates percentage of original loan amount that has been repaid.
  * @param {Object} loan - Loan object.
  * @returns {number} Percentage (0-100).
@@ -63,8 +72,8 @@ function calcNextRepaymentDate(loan) {
 function getLoanRepaidPercent(loan) {
   const original = parseFloat(loan.amount) || 0;
   if (original === 0) return 100;
-  const remaining = parseFloat(loan.remainingBalance) || 0;
-  return Math.min(100, Math.round(((original - remaining) / original) * 100));
+  const repaid = getLoanRepaidAmount(loan);
+  return Math.min(100, Math.round((repaid / original) * 100));
 }
 
 /**
@@ -141,14 +150,11 @@ function renderLoans() {
   document.getElementById('loans-stat-completed').textContent = ls.totalCompleted;
 
   // Build flat array list of loans with parent employee references
-  const allLoans = [];
-  employees.forEach(e => {
-    (e.loans || []).forEach(l => {
-      if (filterEmp && e.id !== filterEmp) return;
-      if (currentLoanFilter === 'active' && l.status !== 'active') return;
-      if (currentLoanFilter === 'completed' && l.status !== 'completed') return;
-      allLoans.push({ loan: l, emp: e });
-    });
+  const allLoans = getLoans().filter(({ loan, emp }) => {
+    if (filterEmp && emp.id !== filterEmp) return false;
+    if (currentLoanFilter === 'active' && loan.status !== 'active') return false;
+    if (currentLoanFilter === 'completed' && loan.status !== 'completed') return false;
+    return true;
   });
 
   allLoans.sort((a, b) => b.loan.dateGiven - a.loan.dateGiven);
@@ -165,7 +171,7 @@ function renderLoans() {
 
   grid.innerHTML = allLoans.map(({ loan, emp }) => {
     const pct = getLoanRepaidPercent(loan);
-    const repaidAmt = (parseFloat(loan.amount) || 0) - (parseFloat(loan.remainingBalance) || 0);
+    const repaidAmt = getLoanRepaidAmount(loan);
     const nextRepay = loan.status === 'active' ? calcNextRepaymentDate(loan) : null;
 
     return `
@@ -387,7 +393,7 @@ function openLoanHistoryModal(loanId, empId) {
  */
 function renderLoanHistoryContent(loan, emp) {
   const pct = getLoanRepaidPercent(loan);
-  const repaidAmt = (parseFloat(loan.amount) || 0) - (parseFloat(loan.remainingBalance) || 0);
+  const repaidAmt = getLoanRepaidAmount(loan);
   const nextRepay = loan.status === 'active' ? calcNextRepaymentDate(loan) : null;
 
   // Render hero template

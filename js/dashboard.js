@@ -72,13 +72,7 @@ function renderDashboard() {
     `;
   }).join('');
 
-  // Recent loans list widget
-  const recentLoansEl = document.getElementById('recent-loans-list');
-  const allLoansFlat = [];
-  employees.forEach(e => {
-    (e.loans || []).forEach(l => allLoansFlat.push({ loan: l, emp: e }));
-  });
-  const recentLoans = allLoansFlat.sort((a,b) => b.loan.dateGiven - a.loan.dateGiven).slice(0, 5);
+  const recentLoans = getLoans().sort((a,b) => b.loan.dateGiven - a.loan.dateGiven).slice(0, 5);
 
   if (recentLoans.length === 0) {
     recentLoansEl.innerHTML = `<div class="empty-state" style="padding:30px">

@@ -52,22 +52,120 @@ function saveUsers(users) {
 }
 
 /**
- * Retrieves the list of employees associated with a user's email.
- * @param {string} email - The user's email address.
+ * Retrieves the list of employees. If email is provided, retrieves for that email.
+ * Otherwise, retrieves for the currently logged-in user.
+ * @param {string} [email] - The user's email address.
  * @returns {Array} List of employees.
  */
 function getEmployees(email) {
-  const raw = localStorage.getItem(EMPLOYEES_KEY_PREFIX + email);
+  const targetEmail = email || (currentUser ? currentUser.email : null);
+  if (!targetEmail) return [];
+  const raw = localStorage.getItem(EMPLOYEES_KEY_PREFIX + targetEmail);
   return raw ? JSON.parse(raw) : [];
 }
 
 /**
- * Saves the list of employees for a user's email to localStorage.
- * @param {string} email - The user's email address.
- * @param {Array} emps - List of employees to save.
+ * Saves the list of employees. Supports both (emps, email) and (email, emps) and (emps) signatures.
+ * @param {Array|string} arg1 - Employees array or email.
+ * @param {Array|string} [arg2] - Employees array or email.
  */
-function saveEmployees(email, emps) {
-  localStorage.setItem(EMPLOYEES_KEY_PREFIX + email, JSON.stringify(emps));
+function saveEmployees(arg1, arg2) {
+  let email, emps;
+  if (typeof arg1 === 'string') {
+    email = arg1;
+    emps = arg2;
+  } else {
+    emps = arg1;
+    email = arg2;
+  }
+  const targetEmail = email || (currentUser ? currentUser.email : null);
+  if (!targetEmail) return;
+  localStorage.setItem(EMPLOYEES_KEY_PREFIX + targetEmail, JSON.stringify(emps));
+}
+
+/**
+ * Saves/inserts a single employee object in global state and writes to localStorage.
+ * @param {Object} emp - Employee object.
+ */
+function saveEmployee(emp) {
+  if (!emp || !emp.id) return;
+  const idx = employees.findIndex(e => e.id === emp.id);
+  if (idx > -1) {
+    employees[idx] = { ...employees[idx], ...emp };
+  } else {
+    employees.unshift(emp);
+  }
+  saveEmployees(employees);
+}
+
+/**
+ * Retrieves a flat array of all loans across all current employees.
+ * @returns {Array} All loans.
+ */
+function getLoans() {
+  const all = [];
+  employees.forEach(e => {
+    if (e.loans) {
+      e.loans.forEach(l => {
+        all.push({ loan: l, emp: e });
+      });
+    }
+  });
+  return all;
+}
+
+/**
+ * Inserts or updates a loan record for a target employee, writing changes to storage.
+ * @param {string} empId - Target employee ID.
+ * @param {Object} loan - Loan object to record.
+ * @returns {boolean} Success status of the save operation.
+ */
+function saveLoan(empId, loan) {
+  if (!empId || !loan || !loan.id) return false;
+  const empIdx = employees.findIndex(e => e.id === empId);
+  if (empIdx === -1) return false;
+  if (!employees[empIdx].loans) employees[empIdx].loans = [];
+  const loanIdx = employees[empIdx].loans.findIndex(l => l.id === loan.id);
+  if (loanIdx > -1) {
+    employees[empIdx].loans[loanIdx] = { ...employees[empIdx].loans[loanIdx], ...loan };
+  } else {
+    employees[empIdx].loans.push(loan);
+  }
+  saveEmployees(employees);
+  return true;
+}
+
+/**
+ * Retrieves the application settings from localStorage.
+ * @returns {Object} Settings object.
+ */
+function getSettings() {
+  const raw = localStorage.getItem(SETTINGS_KEY);
+  return raw ? JSON.parse(raw) : {};
+}
+
+/**
+ * Saves the settings object to localStorage.
+ * @param {Object} settings - Settings configuration to persist.
+ */
+function saveSettings(settings) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+/**
+ * Retrieves the active theme key.
+ * @returns {string} Theme key.
+ */
+function getTheme() {
+  return localStorage.getItem(THEME_KEY) || 'dark';
+}
+
+/**
+ * Persists the selected theme key.
+ * @param {string} theme - Selected theme name.
+ */
+function saveTheme(theme) {
+  localStorage.setItem(THEME_KEY, theme);
 }
 
 /**

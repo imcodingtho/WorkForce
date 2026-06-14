@@ -12,11 +12,11 @@
  * Loads current settings preferences and sets active state classes on theme selector cards.
  */
 function renderSettings() {
-  const theme = localStorage.getItem(THEME_KEY) || 'dark';
+  const theme = getTheme();
   document.querySelectorAll('.theme-option').forEach(el => {
     el.classList.toggle('active', el.id === 'theme-' + theme);
   });
-  const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  const settings = getSettings();
   document.getElementById('settings-name').value = settings.name || (currentUser ? currentUser.name : '');
 }
 
@@ -31,7 +31,7 @@ function renderSettings() {
  */
 function setTheme(theme, silent) {
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem(THEME_KEY, theme);
+  saveTheme(theme);
   document.querySelectorAll('.theme-option').forEach(el => {
     el.classList.toggle('active', el.id === 'theme-' + theme);
   });
@@ -57,8 +57,7 @@ function saveSettings() {
     saveSession(currentUser);
     updateUserUI();
   }
-  const settings = { name };
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  saveSettings({ name });
   showToast('Settings saved!', 'success');
 }
 
