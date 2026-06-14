@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WorkForce — Salary Management</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- ============================================================
+     AUTH SCREEN
+     ============================================================ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><i class="fa-solid fa-briefcase"></i></div>
+      <div class="auth-logo-text">WorkForce</div>
+    </div>
+    <div class="auth-tab-row">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">Create Account</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="login-form">
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-subtitle">Sign in to manage your workforce</div>
+      <div class="auth-error" id="login-error"></div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="login-email" placeholder="you@company.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="login-password" placeholder="Your password" />
+      </div>
+      <button class="btn btn-primary" onclick="handleLogin()">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+      </button>
+      <div style="margin-top:18px;text-align:center;font-size:0.82rem;color:var(--text3)">
+        Demo: <strong style="color:var(--text2)">demo@workforce.app / demo1234</strong>
+      </div>
+    </div>
+
+    <!-- SIGNUP FORM -->
+    <div id="signup-form" style="display:none">
+      <div class="auth-title">Create account</div>
+      <div class="auth-subtitle">Start managing your team today</div>
+      <div class="auth-error" id="signup-error"></div>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-input" id="signup-name" placeholder="Your full name" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="signup-email" placeholder="you@company.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="signup-password" placeholder="Min 6 characters" />
+      </div>
+      <button class="btn btn-primary" onclick="handleSignup()">
+        <i class="fa-solid fa-user-plus"></i> Create Account
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP
+     ============================================================ -->
+<div id="app-screen">
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="fa-solid fa-briefcase"></i></div>
+      <div class="sidebar-logo-text">WorkForce</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <button class="nav-item active" onclick="navigate('dashboard')" data-page="dashboard">
+        <i class="fa-solid fa-chart-pie"></i> Dashboard
+      </button>
+      <div class="nav-section-label">Management</div>
+      <button class="nav-item" onclick="navigate('employees')" data-page="employees">
+        <i class="fa-solid fa-users"></i> Employees
+      </button>
+      <button class="nav-item" onclick="navigate('salary')" data-page="salary">
+        <i class="fa-solid fa-money-bill-wave"></i> Salary Tracker
+      </button>
+      <button class="nav-item" onclick="navigate('loans')" data-page="loans">
+        <i class="fa-solid fa-hand-holding-dollar"></i> Loans & Advances
+        <span class="nav-badge" id="active-loans-badge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" onclick="navigate('notes')" data-page="notes">
+        <i class="fa-solid fa-sticky-note"></i> Notes
+      </button>
+      <div class="nav-section-label">System</div>
+      <button class="nav-item" onclick="navigate('settings')" data-page="settings">
+        <i class="fa-solid fa-gear"></i> Settings
+      </button>
+      <button class="nav-item" onclick="handleLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="sidebar-avatar">U</div>
+        <div>
+          <div class="user-name" id="sidebar-name">User</div>
+          <div class="user-role">Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="mobile-menu-btn" onclick="openSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost btn-sm" onclick="navigate('settings')" title="Settings">
+          <i class="fa-solid fa-palette"></i>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openEmployeeModal()">
+          <i class="fa-solid fa-plus"></i> <span class="hide-mobile">Add Employee</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======================================================
+         DASHBOARD PAGE
+         ====================================================== -->
+    <div class="page active" id="page-dashboard">
+      <!-- Main Stats Row -->
+      <div class="stats-grid">
+        <div class="stat-card gold">
+          <div class="stat-label">Total Employees</div>
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-sub">Active in system</div>
+          <i class="fa-solid fa-users stat-icon"></i>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Total Paid</div>
+          <div class="stat-value" id="stat-paid"><span class="currency">$</span>0</div>
+          <div class="stat-sub" id="stat-paid-count">0 employees paid</div>
+          <i class="fa-solid fa-circle-check stat-icon"></i>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Pending Salaries</div>
+          <div class="stat-value" id="stat-pending"><span class="currency">$</span>0</div>
+          <div class="stat-sub" id="stat-pending-count">0 awaiting payment</div>
+          <i class="fa-solid fa-clock stat-icon"></i>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Total Payroll</div>
+          <div class="stat-value" id="stat-total-payroll"><span class="currency">$</span>0</div>
+          <div class="stat-sub">Monthly obligation</div>
+          <i class="fa-solid fa-wallet stat-icon"></i>
+        </div>
+      </div>
+
+      <!-- Loan Stats Row -->
+      <div class="stats-grid" style="margin-bottom:28px">
+        <div class="stat-card orange">
+          <div class="stat-label">Total Loans Issued</div>
+          <div class="stat-value" id="stat-loans-total"><span class="currency">$</span>0</div>
+          <div class="stat-sub" id="stat-loans-count">0 loans</div>
+          <i class="fa-solid fa-hand-holding-dollar stat-icon"></i>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Outstanding Balance</div>
+          <div class="stat-value" id="stat-loans-outstanding"><span class="currency">$</span>0</div>
+          <div class="stat-sub">Remaining to repay</div>
+          <i class="fa-solid fa-scale-unbalanced stat-icon"></i>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Employees with Loans</div>
+          <div class="stat-value" id="stat-loans-employees">0</div>
+          <div class="stat-sub" id="stat-loans-active-count">0 active loans</div>
+          <i class="fa-solid fa-user-clock stat-icon"></i>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Recently Added -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-title">Recently Added</div>
+            <div class="section-link" onclick="navigate('employees')">View all →</div>
+          </div>
+          <div class="recent-list" id="recent-list">
+            <div class="empty-state" style="padding:30px">
+              <i class="fa-solid fa-user-plus" style="font-size:1.8rem;margin-bottom:10px;display:block"></i>
+              <p>No employees yet</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Overview -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-title">Payment Overview</div>
+          </div>
+          <div id="payment-overview">
+            <div class="payment-bar-wrap">
+              <div class="payment-bar-label">
+                <span>Paid</span><span id="bar-paid-pct">0%</span>
+              </div>
+              <div class="payment-bar-track">
+                <div class="payment-bar-fill" id="bar-paid" style="width:0%"></div>
+              </div>
+            </div>
+            <div class="payment-bar-wrap">
+              <div class="payment-bar-label">
+                <span>Pending</span><span id="bar-pending-pct">0%</span>
+              </div>
+              <div class="payment-bar-track">
+                <div class="payment-bar-fill partial" id="bar-pending" style="width:0%"></div>
+              </div>
+            </div>
+            <div style="margin-top:20px">
+              <div class="section-title" style="font-size:0.95rem;margin-bottom:10px">By Interval</div>
+              <div id="interval-breakdown" style="display:flex;flex-direction:column;gap:6px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Loans Row -->
+      <div class="card" style="margin-top:18px">
+        <div class="section-header">
+          <div class="section-title">Recent Loans</div>
+          <div class="section-link" onclick="navigate('loans')">Manage loans →</div>
+        </div>
+        <div class="recent-list" id="recent-loans-list">
+          <div class="empty-state" style="padding:30px">
+            <i class="fa-solid fa-hand-holding-dollar" style="font-size:1.8rem;margin-bottom:10px;display:block"></i>
+            <p>No loans recorded yet</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         EMPLOYEES PAGE
+         ====================================================== -->
+    <div class="page" id="page-employees">
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Search by name, role, phone…" id="emp-search" oninput="renderEmployees()" />
+        </div>
+        <select class="select-input" id="filter-status" onchange="renderEmployees()">
+          <option value="">All Status</option>
+          <option value="paid">Paid</option>
+          <option value="unpaid">Unpaid</option>
+        </select>
+        <select class="select-input" id="filter-interval" onchange="renderEmployees()">
+          <option value="">All Intervals</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="custom">Custom</option>
+        </select>
+        <select class="select-input" id="filter-loan" onchange="renderEmployees()">
+          <option value="">All Employees</option>
+          <option value="yes">Has Active Loan</option>
+          <option value="no">No Active Loan</option>
+        </select>
+        <div class="salary-range-wrap">
+          <span>$</span>
+          <input type="number" id="filter-salary-min" placeholder="Min" min="0" oninput="renderEmployees()" title="Min Salary" />
+          <span>–</span>
+          <input type="number" id="filter-salary-max" placeholder="Max" min="0" oninput="renderEmployees()" title="Max Salary" />
+        </div>
+        <select class="select-input" id="sort-by" onchange="renderEmployees()">
+          <option value="date-desc">Newest First</option>
+          <option value="date-asc">Oldest First</option>
+          <option value="name-asc">Name A–Z</option>
+          <option value="name-desc">Name Z–A</option>
+          <option value="salary-desc">Salary High–Low</option>
+          <option value="salary-asc">Salary Low–High</option>
+        </select>
+        <div class="view-toggle">
+          <button class="view-btn active" id="card-view-btn" onclick="setView('card')" title="Card View"><i class="fa-solid fa-grip"></i></button>
+          <button class="view-btn" id="table-view-btn" onclick="setView('table')" title="Table View"><i class="fa-solid fa-table"></i></button>
+        </div>
+      </div>
+
+      <!-- CARD VIEW -->
+      <div id="employees-card-view">
+        <div class="employees-grid" id="employees-grid"></div>
+        <div id="employees-empty" class="empty-state" style="display:none">
+          <i class="fa-solid fa-users-slash"></i>
+          <h3>No employees found</h3>
+          <p>Try adjusting filters or add a new employee</p>
+        </div>
+      </div>
+
+      <!-- TABLE VIEW -->
+      <div id="employees-table-view" style="display:none">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th onclick="setSortTable('name')">Name <i class="fa-solid fa-sort sort-icon"></i></th>
+                <th onclick="setSortTable('role')">Role <i class="fa-solid fa-sort sort-icon"></i></th>
+                <th onclick="setSortTable('salary')">Salary <i class="fa-solid fa-sort sort-icon"></i></th>
+                <th>Interval</th>
+                <th>Next Payment</th>
+                <th onclick="setSortTable('status')">Status <i class="fa-solid fa-sort sort-icon"></i></th>
+                <th>Phone</th>
+                <th>Loan</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="employees-tbody"></tbody>
+          </table>
+          <div id="table-empty" class="empty-state" style="display:none">
+            <i class="fa-solid fa-users-slash"></i>
+            <h3>No employees found</h3>
+            <p>Try adjusting filters or add a new employee</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         SALARY TRACKER PAGE
+         ====================================================== -->
+    <div class="page" id="page-salary">
+      <div class="stats-grid" style="margin-bottom:20px">
+        <div class="stat-card green">
+          <div class="stat-label">Paid This Period</div>
+          <div class="stat-value" id="sal-paid"><span class="currency">$</span>0</div>
+          <div class="stat-sub" id="sal-paid-n">0 employees</div>
+          <i class="fa-solid fa-check-circle stat-icon"></i>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value" id="sal-pending"><span class="currency">$</span>0</div>
+          <div class="stat-sub" id="sal-pending-n">0 employees</div>
+          <i class="fa-solid fa-hourglass stat-icon"></i>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-label">Total Payroll</div>
+          <div class="stat-value" id="sal-total"><span class="currency">$</span>0</div>
+          <div class="stat-sub">All employees combined</div>
+          <i class="fa-solid fa-coins stat-icon"></i>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">Total Deductions</div>
+          <div class="stat-value" id="sal-deductions"><span class="currency">$</span>0</div>
+          <div class="stat-sub">Monthly loan repayments</div>
+          <i class="fa-solid fa-arrow-trend-down stat-icon"></i>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-header">
+          <div class="section-title">Salary Details</div>
+          <div>
+            <button class="btn btn-ghost btn-sm" onclick="markAllPaid()"><i class="fa-solid fa-check-double"></i> Mark All Paid</button>
+            <button class="btn btn-ghost btn-sm" onclick="markAllUnpaid()"><i class="fa-solid fa-rotate-left"></i> Reset All</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Salary</th>
+                <th>Loan Deduct.</th>
+                <th>Net Pay</th>
+                <th>Interval</th>
+                <th>Next Payment</th>
+                <th>Last Paid</th>
+                <th>Status</th>
+                <th>Toggle</th>
+              </tr>
+            </thead>
+            <tbody id="salary-tbody"></tbody>
+          </table>
+          <div id="salary-empty" class="empty-state" style="display:none">
+            <i class="fa-solid fa-money-bill-wave"></i>
+            <h3>No salary records</h3>
+            <p>Add employees to track their salaries</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         LOANS PAGE
+         ====================================================== -->
+    <div class="page" id="page-loans">
+      <!-- Stats -->
+      <div class="stats-grid" style="margin-bottom:20px">
+        <div class="stat-card orange">
+          <div class="stat-label">Total Issued</div>
+          <div class="stat-value" id="loans-stat-total"><span class="currency">$</span>0</div>
+          <div class="stat-sub" id="loans-stat-count">0 loans issued</div>
+          <i class="fa-solid fa-hand-holding-dollar stat-icon"></i>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Outstanding</div>
+          <div class="stat-value" id="loans-stat-outstanding"><span class="currency">$</span>0</div>
+          <div class="stat-sub">Remaining balance</div>
+          <i class="fa-solid fa-scale-unbalanced stat-icon"></i>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Active Loans</div>
+          <div class="stat-value" id="loans-stat-active">0</div>
+          <div class="stat-sub">Currently repaying</div>
+          <i class="fa-solid fa-spinner stat-icon"></i>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Completed</div>
+          <div class="stat-value" id="loans-stat-completed">0</div>
+          <div class="stat-sub">Fully repaid</div>
+          <i class="fa-solid fa-circle-check stat-icon"></i>
+        </div>
+      </div>
+
+      <!-- Filter + Add Loan -->
+      <div class="loans-filter-bar">
+        <div class="loan-filter-tabs">
+          <button class="loan-filter-tab active" id="loan-tab-all" onclick="setLoanFilter('all')">All</button>
+          <button class="loan-filter-tab" id="loan-tab-active" onclick="setLoanFilter('active')">Active</button>
+          <button class="loan-filter-tab" id="loan-tab-completed" onclick="setLoanFilter('completed')">Completed</button>
+        </div>
+        <select class="select-input" id="loan-filter-emp" onchange="renderLoans()">
+          <option value="">All Employees</option>
+        </select>
+        <button class="btn btn-orange btn-sm" onclick="openAddLoanModal()">
+          <i class="fa-solid fa-plus"></i> Add Loan
+        </button>
+      </div>
+
+      <div class="loans-grid" id="loans-grid"></div>
+      <div id="loans-empty" class="empty-state" style="display:none">
+        <i class="fa-solid fa-hand-holding-dollar"></i>
+        <h3>No loans recorded</h3>
+        <p>Track salary advances and loans for your employees</p>
+        <button class="btn btn-orange btn-sm" style="margin-top:14px" onclick="openAddLoanModal()">
+          <i class="fa-solid fa-plus"></i> Add First Loan
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         NOTES PAGE
+         ====================================================== -->
+    <div class="page" id="page-notes">
+      <div class="notes-grid" id="notes-grid"></div>
+      <div id="notes-empty" class="empty-state" style="display:none">
+        <i class="fa-solid fa-note-sticky"></i>
+        <h3>No notes yet</h3>
+        <p>Add employees and write notes for each person</p>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         SETTINGS PAGE
+         ====================================================== -->
+    <div class="page" id="page-settings">
+      <div class="card" style="max-width:700px">
+        <div class="settings-section">
+          <div class="settings-title"><i class="fa-solid fa-palette" style="margin-right:8px;color:var(--accent)"></i>Theme</div>
+          <div class="theme-grid">
+            <div class="theme-option active" id="theme-dark" onclick="setTheme('dark')">
+              <div class="theme-swatch swatch-dark"></div>
+              <div class="theme-label">Dark</div>
+            </div>
+            <div class="theme-option" id="theme-light" onclick="setTheme('light')">
+              <div class="theme-swatch swatch-light"></div>
+              <div class="theme-label">Light</div>
+            </div>
+            <div class="theme-option" id="theme-corporate" onclick="setTheme('corporate')">
+              <div class="theme-swatch swatch-corporate"></div>
+              <div class="theme-label">Corporate</div>
+            </div>
+            <div class="theme-option" id="theme-minimal" onclick="setTheme('minimal')">
+              <div class="theme-swatch swatch-minimal"></div>
+              <div class="theme-label">Minimal</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-title"><i class="fa-solid fa-database" style="margin-right:8px;color:var(--accent)"></i>Data Export</div>
+          <div class="export-row">
+            <button class="btn btn-ghost" onclick="exportData('json')"><i class="fa-solid fa-file-code"></i> Export JSON</button>
+            <button class="btn btn-ghost" onclick="exportData('csv')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-title"><i class="fa-solid fa-user-cog" style="margin-right:8px;color:var(--accent)"></i>Account</div>
+          <div class="form-group" style="max-width:320px">
+            <label class="form-label">Display Name</label>
+            <input type="text" class="form-input" id="settings-name" placeholder="Your name" />
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="saveSettings()"><i class="fa-solid fa-save"></i> Save Changes</button>
+            <button class="btn btn-danger btn-sm" onclick="confirmClearData()"><i class="fa-solid fa-trash"></i> Clear All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /main-content -->
+</div><!-- /app-screen -->
+
+<!-- ============================================================
+     EMPLOYEE MODAL
+     ============================================================ -->
+<div class="modal-overlay" id="emp-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="emp-modal-title">Add Employee</div>
+      <div class="modal-close" onclick="closeEmployeeModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+
+    <input type="hidden" id="emp-id" />
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <input type="text" class="form-input" id="emp-name" placeholder="Jane Smith" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Job / Role *</label>
+        <input type="text" class="form-input" id="emp-role" placeholder="Software Engineer" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Salary Amount *</label>
+        <input type="number" class="form-input" id="emp-salary" placeholder="0.00" min="0" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Interval</label>
+        <select class="form-input select-input" id="emp-interval">
+          <option value="monthly">Monthly</option>
+          <option value="weekly">Weekly</option>
+          <option value="daily">Daily</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" id="custom-interval-group" style="display:none">
+      <label class="form-label">Custom Interval (days)</label>
+      <input type="number" class="form-input" id="emp-custom-days" placeholder="e.g. 14 for bi-weekly" min="1" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Phone (optional)</label>
+        <input type="tel" class="form-input" id="emp-phone" placeholder="+1 555 000 0000" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Status</label>
+        <select class="form-input select-input" id="emp-paid">
+          <option value="unpaid">Not Paid ❌</option>
+          <option value="paid">Paid ✅</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea class="form-input" id="emp-notes" placeholder="Any notes about this employee…" rows="3"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEmployeeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEmployee()"><i class="fa-solid fa-save"></i> Save Employee</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTE EDIT MODAL -->
+<div class="modal-overlay" id="note-modal-overlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title" id="note-modal-name">Edit Note</div>
+      <div class="modal-close" onclick="closeNoteModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <input type="hidden" id="note-emp-id" />
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea class="form-input" id="note-text" rows="6" placeholder="Write notes here…"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeNoteModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNote()"><i class="fa-solid fa-save"></i> Save Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LOAN MODAL -->
+<div class="modal-overlay" id="loan-modal-overlay">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fa-solid fa-hand-holding-dollar" style="color:var(--orange);margin-right:8px"></i>Add Loan / Advance</div>
+      <div class="modal-close" onclick="closeAddLoanModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+
+    <input type="hidden" id="loan-emp-id" />
+
+    <div class="form-group">
+      <label class="form-label">Employee *</label>
+      <select class="form-input select-input" id="loan-employee-select" onchange="updateLoanEmployeeId()">
+        <option value="">— Select Employee —</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Loan / Advance Amount *</label>
+        <input type="number" class="form-input" id="loan-amount" placeholder="0.00" min="0.01" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date Given *</label>
+        <input type="date" class="form-input" id="loan-date" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reason (optional)</label>
+      <input type="text" class="form-input" id="loan-reason" placeholder="e.g. Emergency expense, House deposit…" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Repayment Type</label>
+      <select class="form-input select-input" id="loan-repay-type" onchange="toggleLoanRepayFields()">
+        <option value="fixed">Fixed Monthly Deduction</option>
+        <option value="manual">Manual Repayments</option>
+      </select>
+    </div>
+    <div class="form-group" id="loan-monthly-group">
+      <label class="form-label">Monthly Deduction Amount *</label>
+      <input type="number" class="form-input" id="loan-monthly-deduction" placeholder="0.00" min="0.01" step="0.01" />
+      <div style="font-size:0.78rem;color:var(--text3);margin-top:5px">This will be deducted from salary each month until fully repaid.</div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddLoanModal()">Cancel</button>
+      <button class="btn btn-orange" onclick="saveLoan()"><i class="fa-solid fa-save"></i> Save Loan</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOAN REPAYMENT HISTORY MODAL -->
+<div class="modal-overlay" id="loan-history-overlay">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title" id="lh-modal-title">Loan Details</div>
+      <div class="modal-close" onclick="closeLoanHistoryModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+
+    <input type="hidden" id="lh-loan-id" />
+    <input type="hidden" id="lh-emp-id" />
+
+    <!-- Loan hero summary -->
+    <div class="loan-detail-hero" id="lh-hero"></div>
+
+    <!-- Loan progress bar -->
+    <div class="loan-progress-section" style="margin-bottom:20px" id="lh-progress-section"></div>
+
+    <!-- Repayment history log -->
+    <div class="repay-history-title"><i class="fa-solid fa-clock-rotate-left" style="margin-right:5px"></i>Repayment History</div>
+    <div class="repay-log" id="lh-repay-log"></div>
+
+    <!-- Add repayment section -->
+    <div class="add-repayment-section" id="lh-add-repayment-section">
+      <div class="add-repayment-title"><i class="fa-solid fa-plus-circle" style="color:var(--green)"></i> Record a Repayment</div>
+      <div class="repay-form-row">
+        <div class="form-group">
+          <label class="form-label">Amount *</label>
+          <input type="number" class="form-input" id="lh-repay-amount" placeholder="0.00" min="0.01" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-input" id="lh-repay-date" />
+        </div>
+        <div class="form-group" style="flex:2">
+          <label class="form-label">Note (optional)</label>
+          <input type="text" class="form-input" id="lh-repay-note" placeholder="e.g. Monthly deduction" />
+        </div>
+        <div>
+          <button class="btn btn-success btn-sm" onclick="submitRepayment()" style="margin-top:22px">
+            <i class="fa-solid fa-plus"></i> Add
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer" style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeLoanHistoryModal()">Close</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDeleteLoan()"><i class="fa-solid fa-trash"></i> Delete Loan</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-overlay">
+  <div class="confirm-modal">
+    <div class="confirm-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div class="confirm-title" id="confirm-title">Are you sure?</div>
+    <div class="confirm-text" id="confirm-text">This action cannot be undone.</div>
+    <div class="confirm-footer">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirm-btn" onclick="confirmAction()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+
+<!-- State & localStorage managers -->
+<script src="js/storage.js"></script>
+
+<!-- General UI config, navigation, and utilities -->
+<script src="js/ui.js"></script>
+
+<!-- User authentication, session, and samples provisioning -->
+<script src="js/auth.js"></script>
+
+<!-- Pages content controllers -->
+<script src="js/dashboard.js"></script>
+<script src="js/employees.js"></script>
+<script src="js/payroll.js"></script>
+<script src="js/loans.js"></script>
+<script src="js/settings.js"></script>
+
+<!-- Main Page Initialization Loader -->
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+
+  const session = getSession();
+  if (session) {
+    const users = getUsers();
+    const user = users[session.email];
+    if (user) {
+      loginUser(user);
+      return;
+    }
+  }
+  document.getElementById('auth-screen').style.display = '';
+  document.getElementById('app-screen').style.display = 'none';
+});
+</script>
+</body>
+</html>
