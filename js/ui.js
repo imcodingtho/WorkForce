@@ -26,6 +26,9 @@ function startApp() {
     document.getElementById('settings-name').value = settings.name;
   }
 
+  // Force initial DOM translation
+  translateDOM();
+
   updateLoanBadge();
   navigate('dashboard');
 }
@@ -66,6 +69,9 @@ function navigate(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const el = document.getElementById('page-' + page);
   if (el) el.classList.add('active');
+
+  // Page titles will be updated dynamically via translateDOM()
+  translateDOM();
 
   const titles = {
     dashboard: 'Dashboard',
@@ -120,9 +126,27 @@ function uid() {
  * @param {number} n - The raw number.
  * @returns {string} Formatted currency string.
  */
+const currencySymbols = {
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  INR: '₹',
+  AED: 'د.إ',
+  CAD: 'C$',
+  AUD: 'A$',
+  JPY: '¥'
+};
+
+/**
+ * Formats a number as dynamic currency based on settings.
+ * @param {number} n - The raw number.
+ * @returns {string} Formatted currency string.
+ */
 function formatCurrency(n) {
-  if (isNaN(n) || n === null || n === undefined) return '$0';
-  return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const curr = getCurrency();
+  const symbol = currencySymbols[curr] || '₹';
+  if (isNaN(n) || n === null || n === undefined) return symbol + '0';
+  return symbol + Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 /**
@@ -249,6 +273,9 @@ document.addEventListener('keydown', e => {
     closeLoanHistoryModal();
     closeConfirm();
     closeSidebar();
+    if (typeof closeProfileModal === 'function') closeProfileModal();
+    if (typeof closeRecordPaymentModal === 'function') closeRecordPaymentModal();
+    if (typeof closeMarkModal === 'function') closeMarkModal();
   }
   if (e.ctrlKey && e.key === 'n' && currentUser) {
     e.preventDefault();
@@ -273,4 +300,24 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('loan-history-overlay').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeLoanHistoryModal();
   });
+  
+  // Custom checks for attendance modals
+  const profileOverlay = document.getElementById('profile-modal-overlay');
+  if (profileOverlay) {
+    profileOverlay.addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeProfileModal();
+    });
+  }
+  const paymentOverlay = document.getElementById('payment-modal-overlay');
+  if (paymentOverlay) {
+    paymentOverlay.addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeRecordPaymentModal();
+    });
+  }
+  const markOverlay = document.getElementById('mark-modal-overlay');
+  if (markOverlay) {
+    markOverlay.addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeMarkModal();
+    });
+  }
 });

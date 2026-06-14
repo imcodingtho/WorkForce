@@ -108,7 +108,7 @@ function renderCardView(list) {
       <div class="emp-card-header">
         <div class="emp-avatar-lg" style="background:rgba(var(--accent-rgb),0.15);color:var(--accent)">${getInitials(e.name)}</div>
         <div style="flex:1;min-width:0">
-          <div class="emp-card-name">${esc(e.name)}</div>
+          <div class="emp-card-name" style="cursor:pointer;text-decoration:underline" onclick="openEmployeeProfile('${e.id}')">${esc(e.name)}</div>
           <div class="emp-card-role">${esc(e.role)}</div>
         </div>
         <div class="emp-card-actions">
@@ -181,7 +181,7 @@ function renderTableView(list) {
     return `
     <tr>
       <td>
-        <div class="td-name">${esc(e.name)}</div>
+        <div class="td-name" style="cursor:pointer;text-decoration:underline" onclick="openEmployeeProfile('${e.id}')">${esc(e.name)}</div>
         <div class="td-role">${esc(e.role)}</div>
       </td>
       <td><strong>${formatCurrency(e.salary)}</strong></td>

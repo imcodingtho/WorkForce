@@ -169,6 +169,38 @@ function saveTheme(theme) {
 }
 
 /**
+ * Retrieves the selected currency from localStorage. Defaults to 'INR'.
+ * @returns {string} Currency key.
+ */
+function getCurrency() {
+  return localStorage.getItem('wf_currency') || 'INR';
+}
+
+/**
+ * Saves the selected currency key to localStorage.
+ * @param {string} curr - Selected currency.
+ */
+function saveCurrency(curr) {
+  localStorage.setItem('wf_currency', curr);
+}
+
+/**
+ * Retrieves the selected language from localStorage. Defaults to 'en'.
+ * @returns {string} Language code.
+ */
+function getLanguage() {
+  return localStorage.getItem('wf_language') || 'en';
+}
+
+/**
+ * Saves the selected language code to localStorage.
+ * @param {string} lang - Language code.
+ */
+function saveLanguage(lang) {
+  localStorage.setItem('wf_language', lang);
+}
+
+/**
  * Retrieves the active user session from localStorage.
  * @returns {Object|null} The active user session object or null.
  */

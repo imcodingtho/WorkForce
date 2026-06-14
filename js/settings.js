@@ -18,6 +18,27 @@ function renderSettings() {
   });
   const settings = getSettings();
   document.getElementById('settings-name').value = settings.name || (currentUser ? currentUser.name : '');
+
+  // Populate System Preferences select inputs
+  const langSelect = document.getElementById('settings-lang');
+  const currSelect = document.getElementById('settings-currency');
+  if (langSelect) langSelect.value = getLanguage();
+  if (currSelect) currSelect.value = getCurrency();
+}
+
+/**
+ * Changes currency system preference and updates active screens.
+ * @param {string} curr - Selected currency code.
+ */
+function changeCurrency(curr) {
+  saveCurrency(curr);
+  // Re-render current active tab to reflect changes
+  if (currentPage === 'dashboard') renderDashboard();
+  else if (currentPage === 'employees') renderEmployees();
+  else if (currentPage === 'salary') renderSalary();
+  else if (currentPage === 'loans') renderLoans();
+  else if (currentPage === 'settings') renderSettings();
+  showToast(t('toast_settings_saved'), 'success');
 }
 
 // =========================================================================

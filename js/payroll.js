@@ -84,10 +84,13 @@ function togglePaid(id) {
   // Record payment history when marking as paid
   if (employees[idx].paid) {
     if (!employees[idx].payments) employees[idx].payments = [];
+    const loanDeduct = getTotalMonthlyDeduction(employees[idx]);
+    const attnDetails = getAttendanceSalaryDetails(employees[idx]);
+    const finalNetPay = Math.max(0, attnDetails.netSalary - loanDeduct);
     employees[idx].payments.push({
       id: uid(),
       date: Date.now(),
-      amount: parseFloat(employees[idx].salary) || 0
+      amount: finalNetPay
     });
   }
 
@@ -128,17 +131,33 @@ function togglePaid(id) {
  * Renders statistical indicators and tabular ledger lists on the Salary Tracker page.
  */
 function renderSalary() {
-  const paid = employees.filter(e => e.paid);
-  const unpaid = employees.filter(e => !e.paid);
-  const paidAmt = paid.reduce((s,e) => s + (parseFloat(e.salary)||0), 0);
-  const pendingAmt = unpaid.reduce((s,e) => s + (parseFloat(e.salary)||0), 0);
-  const totalAmt = employees.reduce((s,e) => s + (parseFloat(e.salary)||0), 0);
-  const totalDeductions = employees.reduce((s,e) => s + getTotalMonthlyDeduction(e), 0);
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  let paidAmt = 0;
+  let pendingAmt = 0;
+  let totalAmt = 0;
+  let totalDeductions = 0;
+
+  employees.forEach(e => {
+    const loanDeduct = getTotalMonthlyDeduction(e);
+    const attnDetails = getAttendanceSalaryDetails(e, year, month);
+    const finalNetPay = Math.max(0, attnDetails.netSalary - loanDeduct);
+
+    if (e.paid) {
+      paidAmt += finalNetPay;
+    } else {
+      pendingAmt += finalNetPay;
+    }
+    totalAmt += finalNetPay;
+    totalDeductions += loanDeduct + attnDetails.deduction;
+  });
 
   document.getElementById('sal-paid').innerHTML = `<span class="currency">$</span>${paidAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
-  document.getElementById('sal-paid-n').textContent = paid.length + ' employee' + (paid.length !== 1 ? 's' : '');
+  document.getElementById('sal-paid-n').textContent = employees.filter(e => e.paid).length + ' employee' + (employees.filter(e => e.paid).length !== 1 ? 's' : '');
   document.getElementById('sal-pending').innerHTML = `<span class="currency">$</span>${pendingAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
-  document.getElementById('sal-pending-n').textContent = unpaid.length + ' employee' + (unpaid.length !== 1 ? 's' : '');
+  document.getElementById('sal-pending-n').textContent = employees.filter(e => !e.paid).length + ' employee' + (employees.filter(e => !e.paid).length !== 1 ? 's' : '');
   document.getElementById('sal-total').innerHTML = `<span class="currency">$</span>${totalAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
   document.getElementById('sal-deductions').innerHTML = `<span class="currency">$</span>${totalDeductions.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
 
@@ -153,8 +172,8 @@ function renderSalary() {
   empty.style.display = 'none';
   tbody.innerHTML = employees.map(e => {
     const loanDeduct = getTotalMonthlyDeduction(e);
-    const salary = parseFloat(e.salary) || 0;
-    const netPay = Math.max(0, salary - loanDeduct);
+    const attnDetails = getAttendanceSalaryDetails(e, year, month);
+    const netPay = Math.max(0, attnDetails.netSalary - loanDeduct);
     const lastPaid = getLastPaymentDate(e);
     return `
     <tr>
@@ -162,12 +181,13 @@ function renderSalary() {
         <div style="display:flex;align-items:center;gap:10px">
           <div class="recent-avatar" style="width:34px;height:34px;font-size:0.8rem">${getInitials(e.name)}</div>
           <div>
-            <div class="td-name">${esc(e.name)}</div>
+            <div class="td-name" style="cursor:pointer;text-decoration:underline" onclick="openEmployeeProfile('${e.id}')">${esc(e.name)}</div>
             <div class="td-role">${esc(e.role)}</div>
           </div>
         </div>
       </td>
       <td><strong>${formatCurrency(e.salary)}</strong></td>
+      <td class="deduction-cell">${attnDetails.deduction > 0 ? '−' + formatCurrency(attnDetails.deduction) : '<span style="color:var(--text3)">—</span>'}</td>
       <td class="deduction-cell">${loanDeduct > 0 ? '−' + formatCurrency(loanDeduct) : '<span style="color:var(--text3)">—</span>'}</td>
       <td class="net-pay-cell">${formatCurrency(netPay)}</td>
       <td><span class="chip chip-${e.interval}">${e.interval}${e.interval==='custom'&&e.customDays?' ('+e.customDays+'d)':''}</span></td>
@@ -196,7 +216,10 @@ function markAllPaid() {
     if (!e.paid) {
       e.paid = true;
       if (!e.payments) e.payments = [];
-      e.payments.push({ id: uid(), date: Date.now(), amount: parseFloat(e.salary) || 0 });
+      const loanDeduct = getTotalMonthlyDeduction(e);
+      const attnDetails = getAttendanceSalaryDetails(e);
+      const finalNetPay = Math.max(0, attnDetails.netSalary - loanDeduct);
+      e.payments.push({ id: uid(), date: Date.now(), amount: finalNetPay });
     }
   });
   saveEmployees(currentUser.email, employees);

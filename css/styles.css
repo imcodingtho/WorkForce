@@ -1323,3 +1323,349 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 /* Salary deduction highlight */
 .net-pay-cell { color: var(--green); font-weight: 700; }
 .deduction-cell { color: var(--orange); font-size: 0.82rem; }
+
+/* =====================================================
+   ATTENDANCE & PROFILE STYLES
+   ===================================================== */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), 0.15);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+}
+
+.profile-info h2 {
+  margin: 0 0 4px 0;
+  font-size: 1.35rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.profile-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text2);
+}
+
+.profile-tabs {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  padding-bottom: 5px;
+}
+
+.profile-tab {
+  background: none;
+  border: none;
+  color: var(--text3);
+  padding: 8px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: var(--transition);
+}
+
+.profile-tab:hover {
+  color: var(--text2);
+}
+
+.profile-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 15px;
+}
+
+.profile-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 15px;
+}
+
+.profile-card-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text3);
+  margin-bottom: 12px;
+}
+
+.profile-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.profile-detail span {
+  color: var(--text2);
+}
+
+.attendance-stats-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.attn-stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.attn-stat-num {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.attn-stat-label {
+  font-size: 0.75rem;
+  color: var(--text3);
+}
+
+.attn-stat-card.green .attn-stat-num { color: var(--green); }
+.attn-stat-card.red .attn-stat-num { color: var(--red); }
+.attn-stat-card.orange .attn-stat-num { color: var(--orange); }
+.attn-stat-card.purple .attn-stat-num { color: var(--purple); }
+.attn-stat-card.blue .attn-stat-num { color: var(--blue); }
+
+.calendar-layout-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .calendar-layout-grid {
+    grid-template-columns: 1fr;
+  }
+  .attendance-stats-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.calendar-header-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.calendar-grid-container {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+}
+
+.calendar-day-headers {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-day-cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+}
+
+.calendar-day-cell:hover {
+  background: var(--bg3);
+  color: var(--text);
+}
+
+.calendar-day-cell.empty {
+  cursor: default;
+  opacity: 0.15;
+}
+.calendar-day-cell.empty:hover {
+  background: none;
+}
+
+.calendar-day-cell.present {
+  background: rgba(62, 207, 142, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(62, 207, 142, 0.3);
+}
+.calendar-day-cell.absent {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--red);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+.calendar-day-cell.half-day {
+  background: rgba(251, 146, 96, 0.15);
+  color: var(--orange);
+  border: 1px solid rgba(251, 146, 96, 0.3);
+}
+.calendar-day-cell.leave {
+  background: rgba(167, 139, 250, 0.15);
+  color: var(--purple);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+.calendar-day-cell.today::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.attn-history-list {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attn-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  background: var(--bg3);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid transparent;
+}
+
+.attn-history-item.present { border-left-color: var(--green); }
+.attn-history-item.absent { border-left-color: var(--red); }
+.attn-history-item.half-day { border-left-color: var(--orange); }
+.attn-history-item.leave { border-left-color: var(--purple); }
+
+.attn-history-date {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.mark-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mark-btn-group button {
+  width: 100%;
+}
+
+.dashboard-attendance-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.dashboard-attendance-item:last-child {
+  border-bottom: none;
+}
+
+.dashboard-attendance-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.dashboard-attendance-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.dashboard-attendance-name:hover {
+  color: var(--accent);
+}
+
+.dashboard-attendance-role {
+  font-size: 0.75rem;
+  color: var(--text3);
+}
+
+.dashboard-attendance-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.attn-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.attn-btn:hover {
+  background: var(--bg4);
+  color: var(--text);
+}
+
+.attn-btn.p.active { background: rgba(62, 207, 142, 0.2); color: var(--green); border-color: rgba(62, 207, 142, 0.4); }
+.attn-btn.a.active { background: rgba(248, 113, 113, 0.2); color: var(--red); border-color: rgba(248, 113, 113, 0.4); }
+.attn-btn.h.active { background: rgba(251, 146, 96, 0.2); color: var(--orange); border-color: rgba(251, 146, 96, 0.4); }
+.attn-btn.l.active { background: rgba(167, 139, 250, 0.2); color: var(--purple); border-color: rgba(167, 139, 250, 0.4); }

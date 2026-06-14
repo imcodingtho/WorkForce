@@ -30,6 +30,56 @@ function renderDashboard() {
   document.getElementById('stat-loans-employees').textContent = ls.employeeCount;
   document.getElementById('stat-loans-active-count').textContent = ls.totalActive + ' active loan' + (ls.totalActive !== 1 ? 's' : '');
 
+  // Attendance stats for today
+  const todayStr = getTodayDateStr();
+  let presentToday = 0;
+  let absentToday = 0;
+  employees.forEach(e => {
+    const status = getAttendance(e.id, todayStr);
+    if (status === 'present' || status === 'half-day') presentToday++;
+    else if (status === 'absent') absentToday++;
+  });
+
+  const attnStats = getMonthlyAttendanceStats();
+  document.getElementById('stat-attendance-rate').textContent = `${attnStats.rate}%`;
+  document.getElementById('stat-present-today').textContent = presentToday;
+  document.getElementById('stat-present-today-count').textContent = `${presentToday} present today`;
+  document.getElementById('stat-absent-today').textContent = absentToday;
+  document.getElementById('stat-absent-today-count').textContent = `${absentToday} absent today`;
+
+  // Render Today's Attendance Quick Log Widget
+  const quickLogContainer = document.getElementById('dashboard-attendance-list');
+  if (quickLogContainer) {
+    if (employees.length === 0) {
+      quickLogContainer.innerHTML = `
+        <div class="empty-state" style="padding:30px">
+          <i class="fa-solid fa-calendar-check" style="font-size:1.8rem;margin-bottom:10px;display:block;opacity:0.5"></i>
+          <p>No employees to display</p>
+        </div>`;
+    } else {
+      quickLogContainer.innerHTML = employees.map(e => {
+        const status = getAttendance(e.id, todayStr);
+        return `
+          <div class="dashboard-attendance-item">
+            <div class="dashboard-attendance-info">
+              <div class="recent-avatar" style="width:32px;height:32px;font-size:0.75rem;flex-shrink:0">${getInitials(e.name)}</div>
+              <div style="min-width:0">
+                <div class="dashboard-attendance-name" onclick="openEmployeeProfile('${e.id}')">${esc(e.name)}</div>
+                <div class="dashboard-attendance-role">${esc(e.role)}</div>
+              </div>
+            </div>
+            <div class="dashboard-attendance-actions">
+              <button class="attn-btn p ${status === 'present' ? 'active' : ''}" onclick="quickToggleTodayAttendance('${e.id}', 'present')" title="Present">P</button>
+              <button class="attn-btn a ${status === 'absent' ? 'active' : ''}" onclick="quickToggleTodayAttendance('${e.id}', 'absent')" title="Absent">A</button>
+              <button class="attn-btn h ${status === 'half-day' ? 'active' : ''}" onclick="quickToggleTodayAttendance('${e.id}', 'half-day')" title="Half Day">H</button>
+              <button class="attn-btn l ${status === 'leave' ? 'active' : ''}" onclick="quickToggleTodayAttendance('${e.id}', 'leave')" title="Leave">L</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
   // Recently added employees
   const recent = [...employees].sort((a,b) => b.dateAdded - a.dateAdded).slice(0, 5);
   const rl = document.getElementById('recent-list');
@@ -39,8 +89,8 @@ function renderDashboard() {
     rl.innerHTML = recent.map(e => `
       <div class="recent-item">
         <div class="recent-avatar" style="background:rgba(var(--accent-rgb),0.18);color:var(--accent)">${getInitials(e.name)}</div>
-        <div>
-          <div class="recent-name">${esc(e.name)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="recent-name" style="cursor:pointer;text-decoration:underline" onclick="openEmployeeProfile('${e.id}')">${esc(e.name)}</div>
           <div class="recent-role">${esc(e.role)}</div>
         </div>
         <div class="recent-salary">${formatCurrency(e.salary)}<span style="font-size:0.7rem;font-weight:400;color:var(--text3);margin-left:4px">/${e.interval}</span></div>
@@ -73,34 +123,37 @@ function renderDashboard() {
   }).join('');
 
   const recentLoans = getLoans().sort((a,b) => b.loan.dateGiven - a.loan.dateGiven).slice(0, 5);
+  const recentLoansEl = document.getElementById('recent-loans-list');
 
-  if (recentLoans.length === 0) {
-    recentLoansEl.innerHTML = `<div class="empty-state" style="padding:30px">
-      <i class="fa-solid fa-hand-holding-dollar" style="font-size:1.8rem;margin-bottom:10px;display:block"></i>
-      <p>No loans recorded yet</p>
-    </div>`;
-  } else {
-    recentLoansEl.innerHTML = recentLoans.map(({ loan, emp }) => {
-      const pct = getLoanRepaidPercent(loan);
-      return `
-        <div class="recent-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:pointer" onclick="openLoanHistoryModal('${loan.id}','${emp.id}')">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="recent-avatar" style="background:rgba(251,146,60,0.15);color:var(--orange);flex-shrink:0">${getInitials(emp.name)}</div>
-            <div style="flex:1;min-width:0">
-              <div class="recent-name">${esc(emp.name)}</div>
-              <div class="recent-role">${loan.reason ? esc(loan.reason) : 'No reason specified'}</div>
+  if (recentLoansEl) {
+    if (recentLoans.length === 0) {
+      recentLoansEl.innerHTML = `<div class="empty-state" style="padding:30px">
+        <i class="fa-solid fa-hand-holding-dollar" style="font-size:1.8rem;margin-bottom:10px;display:block"></i>
+        <p>No loans recorded yet</p>
+      </div>`;
+    } else {
+      recentLoansEl.innerHTML = recentLoans.map(({ loan, emp }) => {
+        const pct = getLoanRepaidPercent(loan);
+        return `
+          <div class="recent-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:pointer" onclick="openLoanHistoryModal('${loan.id}','${emp.id}')">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="recent-avatar" style="background:rgba(251,146,60,0.15);color:var(--orange);flex-shrink:0">${getInitials(emp.name)}</div>
+              <div style="flex:1;min-width:0">
+                <div class="recent-name">${esc(emp.name)}</div>
+                <div class="recent-role">${loan.reason ? esc(loan.reason) : 'No reason specified'}</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0">
+                <div style="font-weight:700;color:var(--orange);font-size:0.9rem">${formatCurrency(loan.remainingBalance)} left</div>
+                <div style="font-size:0.72rem;color:var(--text3)">${formatCurrency(loan.amount)} total</div>
+              </div>
+              <span class="badge ${loan.status === 'active' ? 'badge-loan-active' : 'badge-loan-completed'}">${loan.status === 'active' ? 'Active' : 'Done ✅'}</span>
             </div>
-            <div style="text-align:right;flex-shrink:0">
-              <div style="font-weight:700;color:var(--orange);font-size:0.9rem">${formatCurrency(loan.remainingBalance)} left</div>
-              <div style="font-size:0.72rem;color:var(--text3)">${formatCurrency(loan.amount)} total</div>
+            <div class="loan-progress-track" style="height:4px">
+              <div class="loan-progress-bar-fill ${loan.status === 'completed' ? 'loan-done' : ''}" style="width:${pct}%"></div>
             </div>
-            <span class="badge ${loan.status === 'active' ? 'badge-loan-active' : 'badge-loan-completed'}">${loan.status === 'active' ? 'Active' : 'Done ✅'}</span>
           </div>
-          <div class="loan-progress-track" style="height:4px">
-            <div class="loan-progress-bar-fill ${loan.status === 'completed' ? 'loan-done' : ''}" style="width:${pct}%"></div>
-          </div>
-        </div>
-      `;
-    }).join('');
+        `;
+      }).join('');
+    }
   }
 }
