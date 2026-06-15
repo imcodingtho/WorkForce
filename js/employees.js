@@ -21,7 +21,7 @@ function getFilteredSorted() {
   const salaryMax = parseFloat(document.getElementById('filter-salary-max').value) || null;
   const sortBy = document.getElementById('sort-by').value;
 
-  let list = employees.filter(e => {
+  let list = getFilteredEmployees().filter(e => {
     const matchQ = !q || e.name.toLowerCase().includes(q) || e.role.toLowerCase().includes(q) || (e.phone && e.phone.includes(q));
     const matchStatus = !status || (status === 'paid' ? e.paid : !e.paid);
     const matchInterval = !interval || e.interval === interval;
@@ -65,6 +65,10 @@ function renderEmployees() {
 function renderCardView(list) {
   const grid = document.getElementById('employees-grid');
   const empty = document.getElementById('employees-empty');
+
+  // Show / hide free plan limit banner
+  _renderPlanLimitBanner();
+
   if (list.length === 0) {
     grid.innerHTML = '';
     empty.style.display = '';
@@ -165,6 +169,9 @@ function renderCardView(list) {
  * @param {Array} list - Filtered list of employees.
  */
 function renderTableView(list) {
+  // Show / hide free plan limit banner
+  _renderPlanLimitBanner();
+
   const tbody = document.getElementById('employees-tbody');
   const empty = document.getElementById('table-empty');
   if (list.length === 0) {
@@ -253,6 +260,68 @@ function toggleNotesPreview(id) {
 }
 
 // =========================================================================
+// FREE PLAN LIMIT BANNER
+// =========================================================================
+
+/**
+ * Inserts or updates the free-plan limit warning banner above the employee grid.
+ */
+function _renderPlanLimitBanner() {
+  const page = document.getElementById('page-employees');
+  if (!page) return;
+
+  // Remove any existing banner first
+  const existing = document.getElementById('emp-plan-banner');
+  if (existing) existing.remove();
+
+  const isPro = isProUser();
+  const count = employees.length;
+  const limit = getEmployeeLimit();
+
+  if (isPro) return; // Pro/Ultra users never see this
+
+  const toolbar = page.querySelector('.toolbar');
+  if (!toolbar) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'emp-plan-banner';
+
+  if (count >= limit) {
+    // AT LIMIT — show hard block
+    banner.className = 'plan-limit-banner plan-limit-full';
+    banner.innerHTML = `
+      <div class="plan-limit-content">
+        <i class="fa-solid fa-lock"></i>
+        <div>
+          <strong>Employee limit reached (${count}/${limit})</strong>
+          <span>Base plan allows up to ${limit} employees. Upgrade to Pro for unlimited.</span>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="navigate('upgrade')" style="white-space:nowrap;flex-shrink:0">
+        <i class="fa-solid fa-gem"></i> Upgrade to Pro
+      </button>
+    `;
+  } else {
+    // BELOW LIMIT — show soft warning
+    banner.className = 'plan-limit-banner plan-limit-warn';
+    banner.innerHTML = `
+      <div class="plan-limit-content">
+        <i class="fa-solid fa-circle-info"></i>
+        <div>
+          <strong>Base Plan: ${count}/${limit} employees used</strong>
+          <span>Upgrade to Pro for unlimited employees and premium features.</span>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="navigate('upgrade')" style="white-space:nowrap;flex-shrink:0;border-color:var(--accent);color:var(--accent)">
+        <i class="fa-solid fa-gem"></i> Upgrade
+      </button>
+    `;
+  }
+
+  toolbar.insertAdjacentElement('afterend', banner);
+}
+
+// =========================================================================
 // EMPLOYEE DETAILS FORM MODAL (ADD / EDIT)
 // =========================================================================
 
@@ -261,6 +330,17 @@ function toggleNotesPreview(id) {
  * @param {string} [id] - Optional employee ID for editing mode.
  */
 function openEmployeeModal(id) {
+  // Block ADDING new employees on Base plan if at limit
+  if (!id && !isProUser() && employees.length >= getEmployeeLimit()) {
+    openPlanModal(
+      'Base Plan Limit Reached',
+      `You have reached the ${getEmployeeLimit()}-employee limit on the Base Plan. Upgrade to Pro for unlimited employees.`,
+      'fa-users-slash',
+      true
+    );
+    return;
+  }
+
   const overlay = document.getElementById('emp-modal-overlay');
   overlay.classList.add('active');
   if (id) {
@@ -276,6 +356,9 @@ function openEmployeeModal(id) {
     document.getElementById('emp-paid').value = emp.paid ? 'paid' : 'unpaid';
     document.getElementById('emp-notes').value = emp.notes || '';
     document.getElementById('emp-custom-days').value = emp.customDays || '';
+    if (document.getElementById('emp-branch')) {
+      document.getElementById('emp-branch').value = emp.branch || '';
+    }
     toggleCustomInterval();
   } else {
     document.getElementById('emp-modal-title').textContent = 'Add Employee';
@@ -288,8 +371,19 @@ function openEmployeeModal(id) {
     document.getElementById('emp-paid').value = 'unpaid';
     document.getElementById('emp-notes').value = '';
     document.getElementById('emp-custom-days').value = '';
+    if (document.getElementById('emp-branch')) {
+      const globalBranch = document.getElementById('global-branch-selector') ? document.getElementById('global-branch-selector').value : '';
+      document.getElementById('emp-branch').value = globalBranch;
+    }
     toggleCustomInterval();
   }
+  
+  if (isUltraUser() && document.getElementById('emp-branch-group')) {
+    document.getElementById('emp-branch-group').style.display = '';
+  } else if (document.getElementById('emp-branch-group')) {
+    document.getElementById('emp-branch-group').style.display = 'none';
+  }
+  
   setTimeout(() => document.getElementById('emp-name').focus(), 100);
 }
 
@@ -326,12 +420,14 @@ function saveEmployee() {
   const phone = document.getElementById('emp-phone').value.trim();
   const paid = document.getElementById('emp-paid').value === 'paid';
   const notes = document.getElementById('emp-notes').value.trim();
+  const branchEl = document.getElementById('emp-branch');
+  const branch = (isUltraUser() && branchEl) ? branchEl.value : null;
 
-  // Enforce Free plan employee limits (max 5)
-  if (!id && !isProUser() && employees.length >= 5) {
+  // Enforce Base plan employee limits (max 25)
+  if (!id && !isProUser() && employees.length >= getEmployeeLimit()) {
     openPlanModal(
-      'Free Plan Limit Reached',
-      'Free plan limit reached. Upgrade to Pro for unlimited employees.',
+      'Base Plan Limit Reached',
+      `You have reached the ${getEmployeeLimit()}-employee limit on the Base Plan. Upgrade to Pro for unlimited employees.`,
       'fa-users-slash',
       true
     );
@@ -350,11 +446,11 @@ function saveEmployee() {
   if (id) {
     const idx = employees.findIndex(e => e.id === id);
     if (idx > -1) {
-      employees[idx] = { ...employees[idx], name, role, salary, interval, customDays: customDays || null, phone, paid, notes };
+      employees[idx] = { ...employees[idx], name, role, salary, interval, customDays: customDays || null, phone, paid, notes, branch };
       showToast('Employee updated successfully.', 'success');
     }
   } else {
-    employees.unshift({ id: uid(), name, role, salary, interval, customDays: customDays || null, phone, paid, notes, dateAdded: Date.now(), loans: [], payments: [] });
+    employees.unshift({ id: uid(), name, role, salary, interval, customDays: customDays || null, phone, paid, notes, branch, dateAdded: Date.now(), loans: [], payments: [] });
     showToast(`${name} added to the team!`, 'success');
   }
 
@@ -427,13 +523,14 @@ function deleteEmployee(id) {
 function renderNotes() {
   const grid = document.getElementById('notes-grid');
   const empty = document.getElementById('notes-empty');
-  if (employees.length === 0) {
+  const emps = getFilteredEmployees();
+  if (emps.length === 0) {
     grid.innerHTML = '';
     empty.style.display = '';
     return;
   }
   empty.style.display = 'none';
-  grid.innerHTML = employees.map(e => `
+  grid.innerHTML = emps.map(e => `
     <div class="note-card" id="note-card-${e.id}">
       <div class="note-card-header">
         <div class="recent-avatar" style="width:36px;height:36px;font-size:0.8rem;flex-shrink:0">${getInitials(e.name)}</div>

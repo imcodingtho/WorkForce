@@ -8,12 +8,13 @@
  * and renders recently added cards, breakdown lists, and progress bars.
  */
 function renderDashboard() {
-  const total = employees.length;
-  const paid = employees.filter(e => e.paid);
-  const unpaid = employees.filter(e => !e.paid);
+  const emps = getFilteredEmployees();
+  const total = emps.length;
+  const paid = emps.filter(e => e.paid);
+  const unpaid = emps.filter(e => !e.paid);
   const totalPaidAmt = paid.reduce((s, e) => s + (parseFloat(e.salary) || 0), 0);
   const totalPendingAmt = unpaid.reduce((s, e) => s + (parseFloat(e.salary) || 0), 0);
-  const totalPayroll = employees.reduce((s, e) => s + calcMonthlyEquivalent(e), 0);
+  const totalPayroll = emps.reduce((s, e) => s + calcMonthlyEquivalent(e), 0);
 
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-paid').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${totalPaidAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
@@ -34,7 +35,7 @@ function renderDashboard() {
   const todayStr = getTodayDateStr();
   let presentToday = 0;
   let absentToday = 0;
-  employees.forEach(e => {
+  emps.forEach(e => {
     const status = getAttendance(e.id, todayStr);
     if (status === 'present' || status === 'half-day') presentToday++;
     else if (status === 'absent') absentToday++;
@@ -50,14 +51,14 @@ function renderDashboard() {
   // Render Today's Attendance Quick Log Widget
   const quickLogContainer = document.getElementById('dashboard-attendance-list');
   if (quickLogContainer) {
-    if (employees.length === 0) {
+    if (emps.length === 0) {
       quickLogContainer.innerHTML = `
         <div class="empty-state" style="padding:30px">
           <i class="fa-solid fa-calendar-check" style="font-size:1.8rem;margin-bottom:10px;display:block;opacity:0.5"></i>
           <p>No employees to display</p>
         </div>`;
     } else {
-      quickLogContainer.innerHTML = employees.map(e => {
+      quickLogContainer.innerHTML = emps.map(e => {
         const status = getAttendance(e.id, todayStr);
         return `
           <div class="dashboard-attendance-item">
@@ -81,7 +82,7 @@ function renderDashboard() {
   }
 
   // Recently added employees
-  const recent = [...employees].sort((a,b) => b.dateAdded - a.dateAdded).slice(0, 5);
+  const recent = [...emps].sort((a,b) => b.dateAdded - a.dateAdded).slice(0, 5);
   const rl = document.getElementById('recent-list');
   if (recent.length === 0) {
     rl.innerHTML = `<div class="empty-state" style="padding:30px"><i class="fa-solid fa-user-plus" style="font-size:1.8rem;margin-bottom:10px;display:block"></i><p>No employees yet</p></div>`;
@@ -111,8 +112,8 @@ function renderDashboard() {
   const intervals = ['daily', 'weekly', 'monthly', 'custom'];
   const breakdown = document.getElementById('interval-breakdown');
   breakdown.innerHTML = intervals.map(iv => {
-    const cnt = employees.filter(e => e.interval === iv).length;
-    const amt = employees.filter(e => e.interval === iv).reduce((s,e) => s + (parseFloat(e.salary)||0), 0);
+    const cnt = emps.filter(e => e.interval === iv).length;
+    const amt = emps.filter(e => e.interval === iv).reduce((s,e) => s + (parseFloat(e.salary)||0), 0);
     if (cnt === 0) return '';
     return `
       <div class="emp-detail">

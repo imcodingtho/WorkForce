@@ -21,6 +21,28 @@ const translations = {
     attendance: "Attendance",
     attendance_summary: "Attendance Summary",
     attendance_log: "Attendance Log",
+    analytics: "Analytics",
+    payroll_trend: "Payroll Trend",
+    attendance_breakdown: "Attendance Breakdown",
+    salary_distribution: "Salary Distribution",
+    loan_status: "Loan Status",
+    top_earners: "Top Earners",
+    attendance_leaders: "Attendance Leaders",
+    monthly_payroll_report: "Monthly Payroll Report",
+    monthly_attendance_report: "Monthly Attendance Report",
+    outstanding_loans_report: "Outstanding Loans Report",
+    th_attn_deduct: "Attn. Deduct.",
+    present_days: "Present Days",
+    absent_days: "Absent Days",
+    half_days: "Half Days",
+    leave_days: "Leave Days",
+    original_loan: "Original Loan",
+    repaid_amount: "Repaid Amount",
+    remaining_bal: "Remaining Bal.",
+    repayment_type: "Repayment Type",
+    export_report: "Export Report",
+    no_report_found: "No report records found",
+    add_emp_records: "Add employees or log records to populate report data.",
 
     // Navigation
     dashboard: "Dashboard",
@@ -259,10 +281,31 @@ const translations = {
     advanced_analytics: "Advanced analytics",
     reports: "Reports",
     future_premium_features: "Future premium features",
-    current_plan_free: "Current Plan: Free",
+    current_plan_free: "Current Plan: Base",
     current_plan_pro: "Current Plan: Pro",
+    current_plan_ultra: "Current Plan: Ultra",
     upgrade_to_pro: "Upgrade to Pro",
-    downgrade_to_free: "Downgrade to Free",
+    upgrade_to_ultra: "Upgrade to Ultra",
+    downgrade_to_free: "Downgrade to Base",
+    downgrade_to_pro: "Downgrade to Pro",
+    upgrade_page_title: "Choose the plan that works for you",
+    upgrade_page_sub: "Start free, scale when you need. Every plan includes employee management, attendance, payroll, and loans.",
+    base_plan_limit: "10 employees · forever free",
+    pro_plan_limit: "35 employees · ₹499/mo",
+    ultra_plan_limit: "Unlimited employees · ₹1499/mo",
+    everything_in_base: "Everything in Base",
+    everything_in_pro: "Everything in Pro",
+    plan_comparison: "Plan Comparison",
+    feature: "Feature",
+    employee_limit: "Employee Limit",
+    priority_support: "Priority Support",
+    early_access: "Early Access",
+    advanced_reports: "Advanced Reports",
+    kpi_analytics: "KPIs & Analytics",
+    most_popular: "Most Popular",
+    premium: "Premium",
+    simulate_plan: "Simulate Plan",
+
     payments_coming_soon_title: "Payments Coming Soon",
     payments_coming_soon_text: "Payments are coming soon. If you are interested in Pro access, contact us.",
     contact_enterprise: "Need enterprise solutions or custom requirements?",
@@ -1392,7 +1435,9 @@ function translateDOM() {
     salary: t('salary_tracker'),
     loans: t('loans_advances'),
     notes: t('notes'),
-    settings: t('settings')
+    settings: t('settings'),
+    reports: t('reports'),
+    analytics: t('analytics')
   };
   const titleEl = document.getElementById('topbar-title');
   if (titleEl && pageTitles[currentPage]) {
@@ -1427,6 +1472,8 @@ function changeLanguage(lang) {
   else if (currentPage === 'loans') renderLoans();
   else if (currentPage === 'notes') renderNotes();
   else if (currentPage === 'settings') renderSettings();
+  else if (currentPage === 'analytics') renderAnalyticsPage();
+  else if (currentPage === 'reports') renderReportsPage();
 
   showToast(t('toast_settings_saved'), 'success');
 }

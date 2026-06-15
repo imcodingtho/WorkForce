@@ -6,23 +6,18 @@
 
 /**
  * Entry point to render the Reports page.
- * Displays a lock overlay for Free plan users, and dynamic report tables for Pro users.
+ * Analytics is now available to all users!
  */
 function renderReportsPage() {
-  const isPro = isProUser();
   const lockedState = document.getElementById('reports-locked-state');
   const activeState = document.getElementById('reports-active-state');
 
   if (!lockedState || !activeState) return;
 
-  if (isPro) {
-    lockedState.style.display = 'none';
-    activeState.style.display = '';
-    renderReport();
-  } else {
-    lockedState.style.display = '';
-    activeState.style.display = 'none';
-  }
+  // Reports is now available to all users!
+  lockedState.style.display = 'none';
+  activeState.style.display = '';
+  renderReport();
 }
 
 /**
@@ -36,7 +31,7 @@ function renderReport() {
 
   if (!table || !empty || !title) return;
 
-  if (employees.length === 0) {
+  if (getFilteredEmployees().length === 0) {
     table.innerHTML = '';
     empty.style.display = '';
     return;
@@ -44,14 +39,38 @@ function renderReport() {
   empty.style.display = 'none';
 
   if (type === 'payroll') {
-    title.textContent = 'Monthly Payroll Report';
+    title.textContent = t('monthly_payroll_report');
     renderPayrollReport(table);
   } else if (type === 'attendance') {
-    title.textContent = 'Monthly Attendance Report';
+    title.textContent = t('monthly_attendance_report');
     renderAttendanceReport(table);
   } else if (type === 'loans') {
-    title.textContent = 'Outstanding Loans Report';
+    title.textContent = t('outstanding_loans_report');
     renderLoansReport(table);
+  }
+
+  // Inject Branding if Ultra
+  const brandingHeader = document.getElementById('report-branding-header');
+  if (brandingHeader) {
+    if (isUltraUser()) {
+      const settings = getSettings();
+      const branding = settings.branding || {};
+      brandingHeader.style.display = 'flex';
+      
+      document.getElementById('report-brand-name').textContent = branding.name || 'WorkForce Report';
+      document.getElementById('report-brand-address').textContent = branding.address || '';
+      document.getElementById('report-brand-phone').textContent = branding.phone || '';
+      
+      const logoWrap = document.getElementById('report-brand-logo-wrap');
+      if (branding.logo) {
+        logoWrap.style.display = 'block';
+        document.getElementById('report-brand-logo').src = branding.logo;
+      } else {
+        logoWrap.style.display = 'none';
+      }
+    } else {
+      brandingHeader.style.display = 'none';
+    }
   }
 }
 
@@ -66,19 +85,19 @@ function renderPayrollReport(table) {
   table.innerHTML = `
     <thead>
       <tr>
-        <th>Employee</th>
-        <th>Job Role</th>
-        <th>Base Salary</th>
-        <th>Attendance Deduct.</th>
-        <th>Loan Deduct.</th>
-        <th>Net Pay</th>
-        <th>Status</th>
+        <th data-i18n="th_employee">${t('th_employee')}</th>
+        <th data-i18n="th_role">${t('th_role')}</th>
+        <th data-i18n="th_salary">${t('th_salary')}</th>
+        <th data-i18n="th_attn_deduct">${t('th_attn_deduct')}</th>
+        <th data-i18n="th_loan_deduct">${t('th_loan_deduct')}</th>
+        <th data-i18n="th_net_pay">${t('th_net_pay')}</th>
+        <th data-i18n="th_status">${t('th_status')}</th>
       </tr>
     </thead>
     <tbody>
-      ${employees.map(e => {
-        const loanDeduct = getTotalMonthlyDeduction(e);
-        const attnDetails = getAttendanceSalaryDetails(e, year, month);
+      ${getFilteredEmployees().map(e => {
+        const loanDeduct = typeof getTotalMonthlyDeduction === 'function' ? getTotalMonthlyDeduction(e) : 0;
+        const attnDetails = typeof getAttendanceSalaryDetails === 'function' ? getAttendanceSalaryDetails(e, year, month) : { deduction: 0, netSalary: e.salary };
         const netPay = Math.max(0, attnDetails.netSalary - loanDeduct);
         return `
           <tr>
@@ -90,7 +109,7 @@ function renderPayrollReport(table) {
             <td class="deduction-cell">${attnDetails.deduction > 0 ? '−' + formatCurrency(attnDetails.deduction) : '—'}</td>
             <td class="deduction-cell">${loanDeduct > 0 ? '−' + formatCurrency(loanDeduct) : '—'}</td>
             <td class="net-pay-cell" style="font-weight: 700;">${formatCurrency(netPay)}</td>
-            <td><span class="badge ${e.paid ? 'badge-paid' : 'badge-unpaid'}">${e.paid ? 'Paid ✅' : 'Pending ❌'}</span></td>
+            <td><span class="badge ${e.paid ? 'badge-paid' : 'badge-unpaid'}">${e.paid ? t('paid') + ' ✅' : t('pending') + ' ❌'}</span></td>
           </tr>
         `;
       }).join('')}
@@ -109,18 +128,18 @@ function renderAttendanceReport(table) {
   table.innerHTML = `
     <thead>
       <tr>
-        <th>Employee</th>
-        <th>Job Role</th>
-        <th>Present Days</th>
-        <th>Absent Days</th>
-        <th>Half Days</th>
-        <th>Leave Days</th>
-        <th>Work Rate</th>
+        <th data-i18n="th_employee">${t('th_employee')}</th>
+        <th data-i18n="th_role">${t('th_role')}</th>
+        <th data-i18n="present_days">${t('present_days')}</th>
+        <th data-i18n="absent_days">${t('absent_days')}</th>
+        <th data-i18n="half_days">${t('half_days')}</th>
+        <th data-i18n="leave_days">${t('leave_days')}</th>
+        <th data-i18n="work_rate">${t('work_rate')}</th>
       </tr>
     </thead>
     <tbody>
-      ${employees.map(e => {
-        const details = getAttendanceSalaryDetails(e, year, month);
+      ${getFilteredEmployees().map(e => {
+        const details = typeof getAttendanceSalaryDetails === 'function' ? getAttendanceSalaryDetails(e, year, month) : { presentCount: 0, absentCount: 0, halfDayCount: 0, leaveCount: 0 };
         const totalLogged = details.presentCount + details.absentCount + details.halfDayCount + details.leaveCount;
         const rate = totalLogged > 0
           ? Math.round(((details.presentCount + details.leaveCount + 0.5 * details.halfDayCount) / totalLogged) * 100)
@@ -150,30 +169,30 @@ function renderLoansReport(table) {
   table.innerHTML = `
     <thead>
       <tr>
-        <th>Employee</th>
-        <th>Job Role</th>
-        <th>Original Loan</th>
-        <th>Repaid Amount</th>
-        <th>Remaining Bal.</th>
-        <th>Repay. Type</th>
-        <th>Status</th>
+        <th data-i18n="th_employee">${t('th_employee')}</th>
+        <th data-i18n="th_role">${t('th_role')}</th>
+        <th data-i18n="original_loan">${t('original_loan')}</th>
+        <th data-i18n="repaid_amount">${t('repaid_amount')}</th>
+        <th data-i18n="remaining_bal">${t('remaining_bal')}</th>
+        <th data-i18n="repayment_type">${t('repayment_type')}</th>
+        <th data-i18n="th_status">${t('th_status')}</th>
       </tr>
     </thead>
     <tbody>
-      ${employees.map(e => {
+      ${getFilteredEmployees().map(e => {
         const activeLoans = (e.loans || []);
         if (activeLoans.length === 0) {
           return `
             <tr>
               <td><div class="td-name">${esc(e.name)}</div></td>
               <td>${esc(e.role)}</td>
-              <td colspan="5" style="text-align: center; color: var(--text3); font-style: italic;">No loans recorded</td>
+              <td colspan="5" style="text-align: center; color: var(--text3); font-style: italic;" data-i18n="no_loans_recorded">${t('no_loans_recorded')}</td>
             </tr>
           `;
         }
         return activeLoans.map(l => {
-          const repaid = getLoanRepaidAmount(l);
-          const pct = getLoanRepaidPercent(l);
+          const repaid = typeof getLoanRepaidAmount === 'function' ? getLoanRepaidAmount(l) : 0;
+          const pct = typeof getLoanRepaidPercent === 'function' ? getLoanRepaidPercent(l) : 0;
           return `
             <tr>
               <td>
@@ -183,8 +202,8 @@ function renderLoansReport(table) {
               <td><strong>${formatCurrency(l.amount)}</strong></td>
               <td style="color: var(--green);">${formatCurrency(repaid)} (${pct}%)</td>
               <td style="font-weight: 700; color: ${l.status === 'active' ? 'var(--orange)' : 'var(--green)'};">${formatCurrency(l.remainingBalance)}</td>
-              <td>${l.repaymentType === 'fixed' ? 'Fixed Monthly' : 'Manual'}</td>
-              <td><span class="badge ${l.status === 'active' ? 'badge-loan-active' : 'badge-loan-completed'}">${l.status === 'active' ? 'Active' : 'Completed ✅'}</span></td>
+              <td>${l.repaymentType === 'fixed' ? t('fixed_monthly_deduct') : t('manual_repay')}</td>
+              <td><span class="badge ${l.status === 'active' ? 'badge-loan-active' : 'badge-loan-completed'}">${l.status === 'active' ? t('active') : t('completed') + ' ✅'}</span></td>
             </tr>
           `;
         }).join('');
@@ -194,83 +213,106 @@ function renderLoansReport(table) {
 }
 
 /**
- * Exports currently viewed report as a CSV.
+ * Exports currently viewed report as PDF, CSV, JSON, or Excel.
  */
-function exportActiveReport() {
-  if (employees.length === 0) {
-    showToast('No data to export.', 'error');
+function exportReport(format) {
+  if (getFilteredEmployees().length === 0) {
+    showToast(t('toast_err_no_export'), 'error');
+    return;
+  }
+
+  const { plan } = getCurrentPlan();
+  if (plan === 'base') {
+    showToast('Exporting reports is a Pro feature.', 'error');
+    openPlanModal();
     return;
   }
 
   const type = document.getElementById('report-type').value;
-  let headers = [];
-  let rows = [];
-  let filename = '';
-
+  let filename = `workforce-${type}-report-${Date.now()}`;
+  
+  if (format === 'pdf') {
+    window.print();
+    return;
+  }
+  
+  let content, mime, ext;
+  
+  // Data extraction logic
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
+  
+  let rawData = [];
+  let headers = [];
+  let rows = [];
 
   if (type === 'payroll') {
-    filename = `workforce-payroll-report-${Date.now()}.csv`;
-    headers = ['Employee', 'Role', 'Base Salary', 'Attendance Deduct.', 'Loan Deduct.', 'Net Pay', 'Status'];
-    rows = employees.map(e => {
-      const loanDeduct = getTotalMonthlyDeduction(e);
-      const attnDetails = getAttendanceSalaryDetails(e, year, month);
+    headers = [t('th_employee'), t('th_role'), t('th_salary'), t('th_attn_deduct'), t('th_loan_deduct'), t('th_net_pay'), t('th_status')];
+    rawData = getFilteredEmployees().map(e => {
+      const loanDeduct = typeof getTotalMonthlyDeduction === 'function' ? getTotalMonthlyDeduction(e) : 0;
+      const attnDetails = typeof getAttendanceSalaryDetails === 'function' ? getAttendanceSalaryDetails(e, year, month) : { deduction: 0, netSalary: e.salary };
       const netPay = Math.max(0, attnDetails.netSalary - loanDeduct);
-      return [
-        `"${e.name.replace(/"/g, '""')}"`,
-        `"${e.role.replace(/"/g, '""')}"`,
-        e.salary,
-        attnDetails.deduction,
-        loanDeduct,
-        netPay,
-        e.paid ? 'Paid' : 'Pending'
-      ];
+      return {
+        Employee: e.name, Role: e.role, BaseSalary: e.salary, AttendanceDeduction: attnDetails.deduction, LoanDeduction: loanDeduct, NetPay: netPay, Status: e.paid ? 'Paid' : 'Pending'
+      };
     });
+    rows = rawData.map(d => [`"${d.Employee.replace(/"/g, '""')}"`, `"${d.Role.replace(/"/g, '""')}"`, d.BaseSalary, d.AttendanceDeduction, d.LoanDeduction, d.NetPay, d.Status]);
   } else if (type === 'attendance') {
-    filename = `workforce-attendance-report-${Date.now()}.csv`;
-    headers = ['Employee', 'Role', 'Present Days', 'Absent Days', 'Half Days', 'Leave Days', 'Work Rate (%)'];
-    rows = employees.map(e => {
-      const details = getAttendanceSalaryDetails(e, year, month);
+    headers = [t('th_employee'), t('th_role'), t('present_days'), t('absent_days'), t('half_days'), t('leave_days'), t('work_rate') + ' (%)'];
+    rawData = getFilteredEmployees().map(e => {
+      const details = typeof getAttendanceSalaryDetails === 'function' ? getAttendanceSalaryDetails(e, year, month) : { presentCount: 0, absentCount: 0, halfDayCount: 0, leaveCount: 0 };
       const totalLogged = details.presentCount + details.absentCount + details.halfDayCount + details.leaveCount;
       const rate = totalLogged > 0 ? Math.round(((details.presentCount + details.leaveCount + 0.5 * details.halfDayCount) / totalLogged) * 100) : 100;
-      return [
-        `"${e.name.replace(/"/g, '""')}"`,
-        `"${e.role.replace(/"/g, '""')}"`,
-        details.presentCount,
-        details.absentCount,
-        details.halfDayCount,
-        details.leaveCount,
-        rate
-      ];
+      return {
+        Employee: e.name, Role: e.role, Present: details.presentCount, Absent: details.absentCount, HalfDay: details.halfDayCount, Leave: details.leaveCount, WorkRate: rate
+      };
     });
+    rows = rawData.map(d => [`"${d.Employee.replace(/"/g, '""')}"`, `"${d.Role.replace(/"/g, '""')}"`, d.Present, d.Absent, d.HalfDay, d.Leave, d.WorkRate]);
   } else if (type === 'loans') {
-    filename = `workforce-loans-report-${Date.now()}.csv`;
-    headers = ['Employee', 'Role', 'Original Loan', 'Repaid Amount', 'Remaining Balance', 'Repayment Type', 'Status'];
-    employees.forEach(e => {
+    headers = [t('th_employee'), t('th_role'), t('original_loan'), t('repaid_amount'), t('remaining_bal'), t('repayment_type'), t('th_status')];
+    getFilteredEmployees().forEach(e => {
       (e.loans || []).forEach(l => {
-        const repaid = getLoanRepaidAmount(l);
-        rows.push([
-          `"${e.name.replace(/"/g, '""')}"`,
-          `"${e.role.replace(/"/g, '""')}"`,
-          l.amount,
-          repaid,
-          l.remainingBalance,
-          l.repaymentType === 'fixed' ? 'Fixed Monthly' : 'Manual',
-          l.status
-        ]);
+        const repaid = typeof getLoanRepaidAmount === 'function' ? getLoanRepaidAmount(l) : 0;
+        rawData.push({
+          Employee: e.name, Role: e.role, Amount: l.amount, Repaid: repaid, Remaining: l.remainingBalance, Type: l.repaymentType === 'fixed' ? 'Fixed' : 'Manual', Status: l.status
+        });
+        rows.push([`"${e.name.replace(/"/g, '""')}"`, `"${e.role.replace(/"/g, '""')}"`, l.amount, repaid, l.remainingBalance, l.repaymentType === 'fixed' ? 'Fixed' : 'Manual', l.status]);
       });
     });
   }
 
-  const content = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-  const blob = new Blob([content], { type: 'text/csv' });
+  if (format === 'json') {
+    content = JSON.stringify({ type, timestamp: now.toISOString(), data: rawData }, null, 2);
+    mime = 'application/json';
+    ext = 'json';
+  } else if (format === 'csv') {
+    content = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    mime = 'text/csv';
+    ext = 'csv';
+  } else if (format === 'excel') {
+    // Generate an HTML table that Excel can open as .xls
+    content = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8" /></head>
+      <body>
+        <table border="1">
+          <tr>${headers.map(h => `<th style="background-color:#dddddd;">${h}</th>`).join('')}</tr>
+          ${rows.map(r => `<tr>${r.map(c => `<td>${String(c).replace(/^"|"$/g, '')}</td>`).join('')}</tr>`).join('')}
+        </table>
+      </body>
+      </html>
+    `;
+    mime = 'application/vnd.ms-excel';
+    ext = 'xls';
+  }
+
+  const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = filename;
+  a.download = `${filename}.${ext}`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('Report exported successfully!', 'success');
+  showToast(t('toast_export_success').replace('{type}', ext.toUpperCase()), 'success');
 }

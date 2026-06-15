@@ -14,6 +14,7 @@ let confirmCallback = null;
 let tableSortCol = '';
 let tableSortDir = 'asc';
 let currentLoanFilter = 'all';
+let currentBranch = 'all';
 
 // =========================================================================
 // LOCALSTORAGE KEYS
@@ -237,20 +238,23 @@ function clearSession() {
 
 /**
  * Retrieves the current subscription plan for the active user.
- * @returns {Object} Plan object.
+ * @returns {Object} Plan object with a 'plan' key: 'base', 'pro', or 'ultra'.
  */
 function getCurrentPlan() {
   const targetEmail = currentUser ? currentUser.email : 'default';
   const raw = localStorage.getItem('wf_plan_' + targetEmail);
   if (!raw) {
-    return { plan: 'free' };
+    return { plan: 'base' };
   }
-  return JSON.parse(raw);
+  const parsed = JSON.parse(raw);
+  // Migrate legacy 'free' plan to 'base'
+  if (parsed.plan === 'free') parsed.plan = 'base';
+  return parsed;
 }
 
 /**
  * Persists the subscription plan key for the active user.
- * @param {string} planStr - Subscription plan name ('free', 'pro').
+ * @param {string} planStr - Subscription plan name ('base', 'pro', 'ultra').
  */
 function setCurrentPlan(planStr) {
   const targetEmail = currentUser ? currentUser.email : 'default';
@@ -258,10 +262,91 @@ function setCurrentPlan(planStr) {
 }
 
 /**
- * Checks if the current active plan is 'pro'.
- * @returns {boolean} True if Pro.
+ * Checks if the current active plan is 'pro' or higher.
+ * @returns {boolean} True if Pro or Ultra.
  */
 function isProUser() {
-  const currentPlan = getCurrentPlan();
-  return currentPlan && currentPlan.plan === 'pro';
+  const { plan } = getCurrentPlan();
+  return plan === 'pro' || plan === 'ultra';
 }
+
+/**
+ * Checks if the current active plan is 'ultra'.
+ * @returns {boolean} True if Ultra.
+ */
+function isUltraUser() {
+  return getCurrentPlan().plan === 'ultra';
+}
+
+/**
+ * Returns the maximum number of employees allowed on the current plan.
+ * Base: 10 | Pro: 35 | Ultra: Unlimited.
+ * @returns {number} Employee limit.
+ */
+function getEmployeeLimit() {
+  const { plan } = getCurrentPlan();
+  if (plan === 'ultra') return Infinity;
+  if (plan === 'pro') return 35;
+  return 10; // base
+}
+
+/**
+ * Returns employees filtered by the globally selected branch.
+ * If not an Ultra user or 'all' is selected, returns all employees.
+ * @returns {Array} List of filtered employees.
+ */
+function getFilteredEmployees() {
+  if (!isUltraUser() || currentBranch === 'all') {
+    return employees;
+  }
+  return employees.filter(e => e.branch === currentBranch);
+}
+
+/**
+ * Retrieves the custom list of branches for the active user.
+ * @returns {Array} List of branch names.
+ */
+function getBranches() {
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  const raw = localStorage.getItem('wf_branches_' + targetEmail);
+  return raw ? JSON.parse(raw) : ['ABC Restaurant', 'ABC Warehouse', 'ABC Catering'];
+}
+
+/**
+ * Saves the custom list of branches for the active user.
+ * @param {Array} branches - Array of branch names.
+ */
+function saveBranches(branches) {
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  localStorage.setItem('wf_branches_' + targetEmail, JSON.stringify(branches));
+}
+
+/**
+ * Logs an activity to the timelog.
+ * @param {string} msg - The activity description.
+ */
+function logActivity(msg) {
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  const key = 'wf_timelog_' + targetEmail;
+  const raw = localStorage.getItem(key);
+  let logs = raw ? JSON.parse(raw) : [];
+  
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  logs.unshift({ time: timeStr, msg: msg, timestamp: now.getTime() });
+  
+  if (logs.length > 100) logs = logs.slice(0, 100); // keep last 100
+  
+  localStorage.setItem(key, JSON.stringify(logs));
+}
+
+/**
+ * Retrieves the activity timelogs.
+ * @returns {Array} List of log objects.
+ */
+function getActivityLogs() {
+  const targetEmail = currentUser ? currentUser.email : 'default';
+  const raw = localStorage.getItem('wf_timelog_' + targetEmail);
+  return raw ? JSON.parse(raw) : [];
+}
+

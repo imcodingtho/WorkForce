@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <link rel="stylesheet" href="css/styles.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -107,51 +108,60 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
+    <div class="sidebar-resizer" id="sidebar-resizer"></div>
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon"><i class="fa-solid fa-briefcase"></i></div>
       <div class="sidebar-logo-text">WorkForce</div>
+      <button class="btn btn-ghost btn-sm" id="sidebar-collapse-btn" onclick="toggleSidebarCollapse()" style="margin-left:auto; padding:4px 8px;">
+        <i class="fa-solid fa-chevron-left" id="sidebar-collapse-icon"></i>
+      </button>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section-label">Overview</div>
+      <div class="nav-section-label" data-i18n="overview">Overview</div>
       <button class="nav-item active" onclick="navigate('dashboard')" data-page="dashboard">
-        <i class="fa-solid fa-chart-pie"></i> Dashboard
+        <i class="fa-solid fa-chart-pie"></i> <span data-i18n="dashboard">Dashboard</span>
       </button>
       <button class="nav-item" onclick="navigate('upgrade')" data-page="upgrade">
-        <i class="fa-solid fa-gem"></i> Upgrade
+        <i class="fa-solid fa-gem"></i> <span data-i18n="view_pricing_plans">Upgrade</span>
       </button>
-      <div class="nav-section-label">Management</div>
+      <div class="nav-section-label" data-i18n="management">Management</div>
+      <button class="nav-item" onclick="navigate('analytics')" data-page="analytics">
+        <i class="fa-solid fa-chart-mixed"></i> <span data-i18n="analytics">Analytics</span>
+        <span class="nav-badge" style="background:var(--accent);color:#000;margin-left:auto">PRO</span>
+      </button>
       <button class="nav-item" onclick="navigate('employees')" data-page="employees">
-        <i class="fa-solid fa-users"></i> Employees
+        <i class="fa-solid fa-users"></i> <span data-i18n="employees">Employees</span>
       </button>
       <button class="nav-item" onclick="navigate('salary')" data-page="salary">
-        <i class="fa-solid fa-money-bill-wave"></i> Salary Tracker
+        <i class="fa-solid fa-money-bill-wave"></i> <span data-i18n="salary_tracker">Salary Tracker</span>
       </button>
       <button class="nav-item" onclick="navigate('loans')" data-page="loans">
-        <i class="fa-solid fa-hand-holding-dollar"></i> Loans & Advances
+        <i class="fa-solid fa-hand-holding-dollar"></i> <span data-i18n="loans_advances">Loans & Advances</span>
         <span class="nav-badge" id="active-loans-badge" style="display:none">0</span>
       </button>
       <button class="nav-item" onclick="navigate('reports')" data-page="reports">
-        <i class="fa-solid fa-chart-column"></i> Reports
+        <i class="fa-solid fa-chart-column"></i> <span data-i18n="reports">Reports</span>
       </button>
       <button class="nav-item" onclick="navigate('notes')" data-page="notes">
-        <i class="fa-solid fa-sticky-note"></i> Notes
+        <i class="fa-solid fa-sticky-note"></i> <span data-i18n="notes">Notes</span>
       </button>
-      <div class="nav-section-label">System</div>
+      <div class="nav-section-label" data-i18n="system">System</div>
       <button class="nav-item" onclick="navigate('settings')" data-page="settings">
-        <i class="fa-solid fa-gear"></i> Settings
+        <i class="fa-solid fa-gear"></i> <span data-i18n="settings">Settings</span>
       </button>
       <button class="nav-item" onclick="handleLogout()">
-        <i class="fa-solid fa-right-from-bracket"></i> Logout
+        <i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="logout">Logout</span>
       </button>
     </nav>
     <div class="sidebar-footer">
       <div class="user-info">
         <div class="user-avatar" id="sidebar-avatar">U</div>
-        <div>
+        <div style="flex:1;min-width:0">
           <div class="user-name" id="sidebar-name">User</div>
           <div class="user-role">Admin</div>
         </div>
       </div>
+      <div id="sidebar-plan-badge" style="margin:0 4px 8px;padding:6px 12px;border-radius:99px;text-align:center;font-size:0.72rem;font-weight:700;background:var(--bg3);color:var(--text3);border:1px solid var(--border)">Base Plan</div>
     </div>
   </aside>
 
@@ -162,6 +172,15 @@
       <button class="mobile-menu-btn" onclick="openSidebar()"><i class="fa-solid fa-bars"></i></button>
       <div class="topbar-title" id="topbar-title">Dashboard</div>
       <div class="topbar-actions">
+        <select class="form-input select-input" id="global-branch-selector" onchange="changeGlobalBranch(this.value)" style="display:none; margin-right: 10px; padding: 4px 10px; height: 32px; font-size: 0.85rem;">
+          <option value="all">All Branches</option>
+          <option value="ABC Restaurant">ABC Restaurant</option>
+          <option value="ABC Warehouse">ABC Warehouse</option>
+          <option value="ABC Catering">ABC Catering</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="toggleActivitySidebar()" title="Activity Log">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </button>
         <button class="btn btn-ghost btn-sm" onclick="navigate('settings')" title="Settings">
           <i class="fa-solid fa-palette"></i>
         </button>
@@ -315,7 +334,21 @@
           </div>
         </div>
       </div>
+    </div> <!-- Close page-dashboard -->
+
+  <!-- ACTIVITY SIDEBAR (RIGHT) -->
+  <aside class="activity-sidebar" id="activity-sidebar">
+    <div class="activity-header">
+      <i class="fa-solid fa-clock-rotate-left"></i> Activity Log
+      <button class="btn btn-ghost btn-sm" onclick="toggleActivitySidebar()" style="margin-left:auto"><i class="fa-solid fa-xmark"></i></button>
     </div>
+    <div class="activity-list" id="right-activity-list">
+      <div class="empty-state" style="padding:30px">
+        <i class="fa-solid fa-clock" style="font-size:1.8rem;margin-bottom:10px;display:block"></i>
+        <p>No recent activity</p>
+      </div>
+    </div>
+  </aside>
 
     <!-- ======================================================
          EMPLOYEES PAGE
@@ -454,6 +487,7 @@
                 <th>Last Paid</th>
                 <th>Status</th>
                 <th>Toggle</th>
+                <th>Slip</th>
               </tr>
             </thead>
             <tbody id="salary-tbody"></tbody>
@@ -561,6 +595,7 @@
               <div class="theme-swatch swatch-minimal"></div>
               <div class="theme-label">Minimal</div>
             </div>
+          </div>
         </div>
 
         <div class="settings-section">
@@ -591,6 +626,55 @@
             </div>
           </div>
         </div>
+        
+        <div class="settings-section" id="settings-modules-section">
+          <div class="settings-title"><i class="fa-solid fa-layer-group" style="margin-right:8px;color:var(--accent)"></i>Module Visibility</div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <input type="checkbox" id="toggle-mod-payroll" checked onchange="toggleModule('payroll', this.checked)">
+              <span>Show Salary Tracker (Payroll)</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <input type="checkbox" id="toggle-mod-loans" checked onchange="toggleModule('loans', this.checked)">
+              <span>Show Loans & Advances</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <input type="checkbox" id="toggle-mod-attendance" checked onchange="toggleModule('attendance', this.checked)">
+              <span>Show Attendance (Profile View)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section" id="settings-branch-section" style="display:none;">
+          <div class="settings-title"><i class="fa-solid fa-code-branch" style="margin-right:8px;color:var(--accent)"></i>Branch Management (Ultra)</div>
+          <div style="margin-bottom: 12px; display: flex; gap: 8px; max-width: 320px;">
+            <input type="text" class="form-input" id="new-branch-input" placeholder="e.g. Marketing Dept" style="flex:1" />
+            <button class="btn btn-primary" onclick="addNewBranch()"><i class="fa-solid fa-plus"></i> Add</button>
+          </div>
+          <div id="settings-branches-list" style="display: flex; flex-direction: column; gap: 8px; max-width: 320px;">
+            <!-- Branches injected here -->
+          </div>
+        </div>
+
+        <div class="settings-section" id="settings-branding-section" style="display:none;">
+          <div class="settings-title"><i class="fa-solid fa-copyright" style="margin-right:8px;color:var(--purple)"></i>Custom Branding (Ultra)</div>
+          <div class="form-group" style="max-width:320px">
+            <label class="form-label">Company Name</label>
+            <input type="text" class="form-input" id="brand-name" placeholder="e.g. Acme Corp" />
+          </div>
+          <div class="form-group" style="max-width:320px">
+            <label class="form-label">Company Logo URL</label>
+            <input type="text" class="form-input" id="brand-logo" placeholder="https://example.com/logo.png" />
+          </div>
+          <div class="form-group" style="max-width:320px">
+            <label class="form-label">Company Address</label>
+            <input type="text" class="form-input" id="brand-address" placeholder="123 Business Rd, City" />
+          </div>
+          <div class="form-group" style="max-width:320px">
+            <label class="form-label">Company Phone</label>
+            <input type="text" class="form-input" id="brand-phone" placeholder="+1 (555) 123-4567" />
+          </div>
+        </div>
 
         <div class="settings-section">
           <div class="settings-title"><i class="fa-solid fa-database" style="margin-right:8px;color:var(--accent)"></i>Data Export</div>
@@ -607,11 +691,18 @@
             <input type="text" class="form-input" id="settings-name" placeholder="Your name" />
           </div>
           <div class="form-group" style="max-width:320px">
-            <label class="form-label">Subscription Plan</label>
-            <select class="form-input select-input" id="settings-plan" onchange="changePlanSimulation(this.value)" style="width: 100%;">
-              <option value="free">Free Plan (Max 5 employees)</option>
-              <option value="pro">Pro Plan (Unlimited)</option>
-            </select>
+            <label class="form-label">Subscription Plan (Simulate)</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select class="form-input select-input" id="settings-plan" style="flex:1;min-width:180px">
+                <option value="base">Base — Free · 10 employees</option>
+                <option value="pro">Pro — ₹499/mo · 35 employees</option>
+                <option value="ultra">Ultra — ₹1499/mo · Unlimited</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="applyPlanChange()" style="white-space:nowrap">
+                <i class="fa-solid fa-check"></i> Apply Plan
+              </button>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text3);margin-top:6px"><i class="fa-solid fa-info-circle"></i> This is a simulation mode — select a plan and click Apply.</div>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn btn-primary btn-sm" onclick="handleSaveSettings()"><i class="fa-solid fa-save"></i> Save Changes</button>
@@ -622,49 +713,247 @@
     </div>
 
     <!-- ======================================================
-         UPGRADE PAGE
+         UPGRADE PAGE — 3-Plan System
          ====================================================== -->
     <div class="page" id="page-upgrade">
-      <div class="upgrade-hero" style="text-align: center; margin-bottom: 40px; padding: 20px 0;">
-        <h1 style="font-family: var(--font-display); font-size: 2.2rem; margin-bottom: 12px; color: var(--text);" data-i18n="upgrade_hero_title">Upgrade Your Workforce Management</h1>
-        <p style="color: var(--text2); font-size: 1.05rem; max-width: 600px; margin: 0 auto;" data-i18n="upgrade_hero_sub">Unlock advanced features and manage unlimited employees.</p>
-      </div>
+      <div class="upgrade-page-wrap">
 
-      <div class="pricing-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 800px; margin: 0 auto 40px;">
-        <!-- FREE PLAN CARD -->
-        <div class="pricing-card" style="background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; display: flex; flex-direction: column; position: relative;">
-          <div style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 8px;" data-i18n="free_plan">Free Plan</div>
-          <div style="font-size: 2.2rem; font-weight: 700; margin-bottom: 20px; color: var(--text);"><span class="currency">₹</span>0<span style="font-size: 0.9rem; color: var(--text2); font-weight: 400;" data-i18n="per_month">/month</span></div>
-          <ul style="list-style: none; margin-bottom: 30px; display: flex; flex-direction: column; gap: 12px; font-size: 0.92rem; color: var(--text2); flex: 1;">
-            <li><i class="fa-solid fa-circle-check" style="color: var(--green); margin-right: 8px;"></i> <span data-i18n="max_5_employees">Up to 5 employees</span></li>
-            <li><i class="fa-solid fa-circle-check" style="color: var(--green); margin-right: 8px;"></i> <span data-i18n="attendance_tracking">Attendance tracking</span></li>
-            <li><i class="fa-solid fa-circle-check" style="color: var(--green); margin-right: 8px;"></i> <span data-i18n="payroll_tracking">Payroll tracking</span></li>
-            <li><i class="fa-solid fa-circle-check" style="color: var(--green); margin-right: 8px;"></i> <span data-i18n="loan_management">Loan management</span></li>
-          </ul>
-          <div class="plan-status-badge" id="free-plan-badge" style="text-align: center; font-weight: 600; padding: 10px; border-radius: var(--radius-sm); border: 1px dashed var(--border2); color: var(--text3);" data-i18n="current_plan_free">Current Plan: Free</div>
+        <!-- Hero -->
+        <div class="upgrade-hero-section">
+          <div class="upgrade-hero-glow"></div>
+          <div class="upgrade-hero-badge"><i class="fa-solid fa-gem"></i> <span data-i18n="view_pricing_plans">WorkForce Plans</span></div>
+          <h1 class="upgrade-hero-title" data-i18n="upgrade_page_title">Choose the plan that works for you</h1>
+          <p class="upgrade-hero-sub" data-i18n="upgrade_page_sub">Start free, scale when you need. Every plan includes employee management, attendance, payroll, and loans.</p>
         </div>
 
-        <!-- PRO PLAN CARD -->
-        <div class="pricing-card featured" style="background: var(--bg2); border: 2px solid var(--accent); border-radius: var(--radius); padding: 32px; display: flex; flex-direction: column; position: relative; box-shadow: var(--shadow-lg);">
-          <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; padding: 4px 12px; border-radius: 99px; letter-spacing: 0.05em;" data-i18n="recommended">Recommended</div>
-          <div style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 8px;" data-i18n="pro_plan">Pro Plan</div>
-          <div style="font-size: 2.2rem; font-weight: 700; margin-bottom: 20px; color: var(--accent);"><span class="currency">₹</span>2,499<span style="font-size: 0.9rem; color: var(--text2); font-weight: 400;" data-i18n="per_month">/month</span></div>
-          <ul style="list-style: none; margin-bottom: 30px; display: flex; flex-direction: column; gap: 12px; font-size: 0.92rem; color: var(--text2); flex: 1;">
-            <li><i class="fa-solid fa-circle-check" style="color: var(--accent); margin-right: 8px;"></i> <span data-i18n="unlimited_employees">Unlimited employees</span></li>
-            <li><i class="fa-solid fa-circle-check" style="color: var(--accent); margin-right: 8px;"></i> <span data-i18n="advanced_analytics">Advanced analytics</span></li>
-            <li><i class="fa-solid fa-circle-check" style="color: var(--accent); margin-right: 8px;"></i> <span data-i18n="reports">Reports</span></li>
-            <li><i class="fa-solid fa-circle-check" style="color: var(--accent); margin-right: 8px;"></i> <span data-i18n="future_premium_features">Future premium features</span></li>
-          </ul>
-          <button class="btn btn-primary" id="upgrade-pro-btn" onclick="handleUpgradeClick()" style="padding: 12px;" data-i18n="upgrade_to_pro">Upgrade to Pro</button>
-          <div class="plan-status-badge" id="pro-active-badge" style="display: none; text-align: center; font-weight: 600; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--accent); color: var(--accent); background: rgba(var(--accent-rgb), 0.08);" data-i18n="current_plan_pro">Current Plan: Pro</div>
+        <!-- 3-Plan Pricing Grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:32px" class="plans-grid-3">
+
+          <!-- BASE CARD -->
+          <div class="upgrade-plan-card">
+            <div class="upgrade-plan-name" data-i18n="free_plan">Base</div>
+            <div class="upgrade-plan-price" data-i18n="free_plan">Free</div>
+            <div class="upgrade-plan-period" data-i18n="base_plan_limit">10 employees · forever free</div>
+            <ul class="upgrade-plan-features">
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="max_5_employees">Up to 10 employees</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="employees">Employee management</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="attendance">Attendance tracking</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="salary_tracker">Salary &amp; payroll</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="loans_advances">Loans &amp; advances</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="dashboard">Dashboard &amp; widgets</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="system_preferences">Themes, currency, language</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="data_export">CSV &amp; JSON export</span></li>
+              <li><i class="fa-solid fa-circle-xmark cross"></i> <span style="color:var(--text3)" data-i18n="reports">Reports</span></li>
+              <li><i class="fa-solid fa-circle-xmark cross"></i> <span style="color:var(--text3)" data-i18n="analytics">Analytics</span></li>
+            </ul>
+            <div class="plan-status-badge" id="base-plan-badge" style="text-align:center;font-weight:600;padding:12px;border-radius:var(--radius-sm);border:1px dashed var(--border2);color:var(--text3)" data-i18n="current_plan_free">Current Plan: Base</div>
+          </div>
+
+          <!-- PRO CARD -->
+          <div class="upgrade-plan-card pro-card">
+            <div class="upgrade-plan-badge" data-i18n="most_popular">✦ Most Popular</div>
+            <div class="upgrade-plan-name" data-i18n="pro_plan">Pro</div>
+            <div class="upgrade-plan-price"><span class="currency">₹</span>499</div>
+            <div class="upgrade-plan-period" data-i18n="pro_plan_limit">35 employees · per month</div>
+            <ul class="upgrade-plan-features">
+              <li><i class="fa-solid fa-circle-check check"></i> <strong data-i18n="everything_in_base">Everything in Base</strong></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <strong>Up to 35 <span data-i18n="employees">employees</span></strong></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="advanced_reports">Reports (Payroll, Attendance, Loans)</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="data_export_full">Export to PDF, CSV, JSON, Excel</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="analytics">Analytics dashboard</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="kpi_analytics">KPI cards &amp; trend charts</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="top_earners">Top earners leaderboard</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="attendance_leaders">Attendance leaderboard</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="advanced_permissions">Advanced Permissions (Owner, Manager, Accountant, Viewer)</span></li>
+              <li><i class="fa-solid fa-circle-xmark cross"></i> <span style="color:var(--text3)" data-i18n="priority_support">Priority support</span></li>
+              <li><i class="fa-solid fa-circle-xmark cross"></i> <span style="color:var(--text3)" data-i18n="early_access">Early access features</span></li>
+            </ul>
+            <button class="btn btn-primary upgrade-plan-cta" id="upgrade-pro-btn" onclick="handleUpgradeClick('pro')">
+              <i class="fa-solid fa-gem"></i> <span data-i18n="upgrade_to_pro">Upgrade to Pro</span>
+            </button>
+            <div class="plan-status-badge" id="pro-active-badge" style="display:none;text-align:center;font-weight:600;padding:12px;border-radius:var(--radius-sm);border:1px solid var(--accent);color:var(--accent);background:rgba(var(--accent-rgb),0.08);margin-top:10px"></div>
+          </div>
+
+          <!-- ULTRA CARD -->
+          <div class="upgrade-plan-card" style="border-color:rgba(167,139,250,0.4);">
+            <div class="upgrade-plan-badge" style="background:var(--purple);color:#fff" data-i18n="premium">⚡ Premium</div>
+            <div class="upgrade-plan-name" style="color:var(--purple)">Ultra</div>
+            <div class="upgrade-plan-price" style="color:var(--purple)"><span class="currency">₹</span>1499</div>
+            <div class="upgrade-plan-period" data-i18n="ultra_plan_limit">Unlimited employees · per month</div>
+            <ul class="upgrade-plan-features">
+              <li><i class="fa-solid fa-circle-check check"></i> <strong data-i18n="everything_in_pro">Everything in Pro</strong></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <strong data-i18n="unlimited_employees">Unlimited employees</strong></li>
+              <li><i class="fa-solid fa-circle-check check" style="color:var(--purple)"></i> <span data-i18n="custom_branding">Custom Branding (Logo, Address, Phone)</span></li>
+              <li><i class="fa-solid fa-circle-check check" style="color:var(--purple)"></i> <span data-i18n="priority_support">Priority support</span></li>
+              <li><i class="fa-solid fa-circle-check check" style="color:var(--purple)"></i> <span data-i18n="early_access">Early access features</span></li>
+              <li><i class="fa-solid fa-circle-check check" style="color:var(--purple)"></i> <span data-i18n="future_premium_features">Future premium features</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="reports">All Reports</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="analytics">Full Analytics</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="kpi_analytics">All leaderboards &amp; charts</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="data_export">CSV &amp; JSON exports</span></li>
+              <li><i class="fa-solid fa-circle-check check"></i> <span data-i18n="view_all">All future features</span></li>
+            </ul>
+            <button class="btn upgrade-plan-cta" id="upgrade-ultra-btn" onclick="handleUpgradeClick('ultra')" style="background:var(--purple);color:#fff;width:100%;justify-content:center;padding:14px">
+              <i class="fa-solid fa-bolt"></i> <span data-i18n="upgrade_to_ultra">Upgrade to Ultra</span>
+            </button>
+            <div class="plan-status-badge" id="ultra-active-badge" style="display:none;text-align:center;font-weight:600;padding:12px;border-radius:var(--radius-sm);border:1px solid var(--purple);color:var(--purple);background:rgba(167,139,250,0.08);margin-top:10px"></div>
+          </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div style="margin-bottom:32px">
+          <div style="font-family:var(--font-display);font-size:1.2rem;margin-bottom:18px;text-align:center">Plan Comparison</div>
+          <div style="overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)">
+            <table style="width:100%;border-collapse:collapse;background:var(--bg2)">
+              <thead>
+                <tr style="background:var(--bg3)">
+                  <th style="padding:14px 18px;text-align:left;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);border-bottom:1px solid var(--border)">Feature</th>
+                  <th style="padding:14px 18px;text-align:center;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);border-bottom:1px solid var(--border)">Base</th>
+                  <th style="padding:14px 18px;text-align:center;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--accent);border-bottom:1px solid var(--border)">Pro</th>
+                  <th style="padding:14px 18px;text-align:center;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--purple);border-bottom:1px solid var(--border)">Ultra</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:12px 18px;font-size:0.9rem;color:var(--text2)">Employee Limit</td>
+                  <td style="padding:12px 18px;text-align:center;font-size:0.88rem">10</td>
+                  <td style="padding:12px 18px;text-align:center;color:var(--accent);font-weight:700">35</td>
+                  <td style="padding:12px 18px;text-align:center;color:var(--purple);font-weight:700">Unlimited</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:12px 18px;font-size:0.9rem;color:var(--text2)">Employee Management</td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:12px 18px;font-size:0.9rem;color:var(--text2)">Attendance Tracking</td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:12px 18px;font-size:0.9rem;color:var(--text2)">Salary &amp; Payroll</td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:12px 18px;font-size:0.9rem;color:var(--text2)">Loans &amp; Advances</td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:12px 18px;font-size:0.9rem;color:var(--text2)">CSV &amp; JSON Export</td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--green)"></i></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border);background:rgba(var(--accent-rgb),0.03)">
+                  <td style="padding:12px 18px;font-size:0.9rem;color:var(--text2)">Reports</td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-xmark" style="color:var(--text3)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--accent)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--purple)"></i></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border);background:rgba(var(--accent-rgb),0.03)">
+                  <td style="padding:12px 18px;font-size:0.9rem;color:var(--text2)">Analytics &amp; Charts</td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-xmark" style="color:var(--text3)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--accent)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--purple)"></i></td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--border);background:rgba(167,139,250,0.04)">
+                  <td style="padding:12px 18px;font-size:0.9rem;color:var(--text2)">Priority Support</td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-xmark" style="color:var(--text3)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-xmark" style="color:var(--text3)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--purple)"></i></td>
+                </tr>
+                <tr style="background:rgba(167,139,250,0.04)">
+                  <td style="padding:12px 18px;font-size:0.9rem;color:var(--text2)">Early Access Features</td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-xmark" style="color:var(--text3)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-xmark" style="color:var(--text3)"></i></td>
+                  <td style="padding:12px 18px;text-align:center"><i class="fa-solid fa-check" style="color:var(--purple)"></i></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Enterprise Bar -->
+        <div class="upgrade-enterprise-bar">
+          <div class="upgrade-enterprise-text">
+            <h3>Need enterprise solutions or custom requirements?</h3>
+            <p>We offer custom pricing for larger organizations and teams with special needs.</p>
+          </div>
+          <div class="upgrade-enterprise-links">
+            <a href="mailto:support@workforce.app"><i class="fa-solid fa-envelope"></i> support@workforce.app</a>
+            <a href="#"><i class="fa-solid fa-globe"></i> www.workforce.app</a>
+          </div>
+        </div>
+
+    </div>
+    </div>
+
+    <!-- ======================================================
+         ANALYTICS PAGE
+         ====================================================== -->
+    <div class="page" id="page-analytics">
+      <!-- Locked state (Base users) -->
+      <div id="analytics-locked-state" style="display:none">
+        <div class="card" style="text-align:center;max-width:520px;margin:60px auto;padding:44px 36px">
+          <div style="font-size:3.5rem;margin-bottom:20px">📊</div>
+          <h2 style="font-family:var(--font-display);font-size:1.5rem;margin-bottom:12px">Analytics</h2>
+          <div style="display:inline-block;background:rgba(var(--accent-rgb),0.12);color:var(--accent);font-size:0.75rem;font-weight:700;padding:3px 12px;border-radius:99px;margin-bottom:16px;letter-spacing:0.06em">PRO &amp; ULTRA FEATURE</div>
+          <p style="color:var(--text2);font-size:0.95rem;line-height:1.6;margin-bottom:28px">
+            Unlock real-time analytics: payroll trends, attendance breakdown, salary distribution, top earners, and more.
+          </p>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="_quickActivatePlan('pro')"><i class="fa-solid fa-gem"></i> Try Pro (Simulate)</button>
+            <button class="btn btn-ghost" onclick="navigate('upgrade')"><i class="fa-solid fa-eye"></i> View Plans</button>
+          </div>
+          <p style="margin-top:16px;font-size:0.78rem;color:var(--text3)">Or go to Settings → Subscription Plan → Select Pro → Apply Plan</p>
         </div>
       </div>
 
-      <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; text-align: center; max-width: 800px; margin: 0 auto;">
-        <h3 style="font-family: var(--font-display); font-size: 1.15rem; margin-bottom: 12px; color: var(--text);" data-i18n="contact_enterprise">Need enterprise solutions or custom requirements?</h3>
-        <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; font-size: 0.9rem; color: var(--text2);">
-          <span><i class="fa-solid fa-envelope" style="color: var(--accent); margin-right: 6px;"></i> support@workforce.app</span>
-          <span><i class="fa-solid fa-globe" style="color: var(--accent); margin-right: 6px;"></i> www.workforce.app</span>
+      <!-- Active state (Pro users) -->
+      <div id="analytics-active-state" style="display:none">
+        <!-- KPI Grid -->
+        <div class="stats-grid" id="analytics-kpi-grid" style="margin-bottom:24px"></div>
+
+        <!-- Charts Row 1: Payroll Forecast & Salary Growth -->
+        <div class="analytics-charts-grid" style="grid-template-columns:1fr 1fr">
+          <div class="analytics-chart-card">
+            <div class="analytics-chart-title"><i class="fa-solid fa-money-bill-trend-up"></i> <span>Payroll Forecast</span></div>
+            <div class="analytics-chart-wrap"><canvas id="chart-payroll-forecast"></canvas></div>
+          </div>
+          <div class="analytics-chart-card">
+            <div class="analytics-chart-title"><i class="fa-solid fa-chart-line"></i> <span>Salary Growth Trends</span></div>
+            <div class="analytics-chart-wrap"><canvas id="chart-salary-growth"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Charts Row 2: Attendance Trends & Loan Risk -->
+        <div class="analytics-charts-grid" style="grid-template-columns:1fr 1fr">
+          <div class="analytics-chart-card">
+            <div class="analytics-chart-title"><i class="fa-solid fa-calendar-check"></i> <span>Attendance Trends</span></div>
+            <div class="analytics-chart-wrap"><canvas id="chart-attendance-trends"></canvas></div>
+          </div>
+          <div class="analytics-chart-card">
+            <div class="analytics-chart-title"><i class="fa-solid fa-scale-unbalanced"></i> <span>Loan Risk Analysis</span></div>
+            <div class="analytics-chart-wrap"><canvas id="chart-loan-risk"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Leaderboard tables -->
+        <div class="analytics-tables-grid">
+          <div class="analytics-chart-card">
+            <div class="analytics-chart-title"><i class="fa-solid fa-trophy"></i> <span data-i18n="top_earners">Top Earners</span></div>
+            <div id="analytics-top-earners"></div>
+          </div>
+          <div class="analytics-chart-card">
+            <div class="analytics-chart-title"><i class="fa-solid fa-star"></i> <span data-i18n="attendance_leaders">Attendance Leaders</span></div>
+            <div id="analytics-attn-leaderboard"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -673,40 +962,44 @@
          REPORTS PAGE
          ====================================================== -->
     <div class="page" id="page-reports">
-      <div id="reports-locked-state" style="display: none;">
-        <div class="card" style="text-align: center; max-width: 500px; margin: 60px auto; padding: 40px 32px;">
-          <i class="fa-solid fa-lock" style="font-size: 3.5rem; color: var(--accent); margin-bottom: 20px;"></i>
-          <h2 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 12px; color: var(--text);">Reports Section (Pro Feature)</h2>
-          <p style="color: var(--text2); font-size: 0.95rem; line-height: 1.6; margin-bottom: 28px;">
-            Upgrade to the Pro Plan to unlock employee attendance reports, loans tracking registers, and exports.
-          </p>
-          <button class="btn btn-primary" onclick="navigate('upgrade')">Upgrade to Pro</button>
+      <div class="toolbar" style="margin-bottom: 20px; flex-wrap: wrap;">
+        <select class="select-input" id="report-type" onchange="renderReport()">
+          <option value="payroll" data-i18n="monthly_payroll_report">Monthly Payroll Report</option>
+          <option value="attendance" data-i18n="monthly_attendance_report">Monthly Attendance Report</option>
+          <option value="loans" data-i18n="outstanding_loans_report">Outstanding Loans Report</option>
+        </select>
+        <div style="display:flex; gap:8px; flex-wrap: wrap;">
+          <button class="btn btn-ghost btn-sm hide-print" onclick="exportReport('pdf')"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          <button class="btn btn-ghost btn-sm hide-print" onclick="exportReport('csv')"><i class="fa-solid fa-file-csv"></i> CSV</button>
+          <button class="btn btn-ghost btn-sm hide-print" onclick="exportReport('json')"><i class="fa-solid fa-file-code"></i> JSON</button>
+          <button class="btn btn-ghost btn-sm hide-print" onclick="exportReport('excel')"><i class="fa-solid fa-file-excel"></i> Excel</button>
         </div>
       </div>
 
-      <div id="reports-active-state" style="display: none;">
-        <div class="toolbar" style="margin-bottom: 20px;">
-          <select class="select-input" id="report-type" onchange="renderReport()">
-            <option value="payroll">Monthly Payroll Report</option>
-            <option value="attendance">Monthly Attendance Report</option>
-            <option value="loans">Outstanding Loans Report</option>
-          </select>
-          <button class="btn btn-ghost btn-sm" onclick="exportActiveReport()"><i class="fa-solid fa-file-export"></i> Export Report</button>
+      <div class="card" id="report-content">
+        <!-- Branding header injected here for print -->
+        <div id="report-branding-header" style="display:none; align-items:center; border-bottom: 2px solid #ccc; padding-bottom:15px; margin-bottom:20px;">
+          <div id="report-brand-logo-wrap" style="width: 80px; height: 80px; margin-right: 15px; display:none;">
+            <img id="report-brand-logo" src="" style="width:100%; height:100%; object-fit:contain;" />
+          </div>
+          <div>
+            <h2 id="report-brand-name" style="margin:0; font-size:1.5rem; color:#222;"></h2>
+            <div id="report-brand-address" style="margin:4px 0 0; color:#555; font-size:0.9rem;"></div>
+            <div id="report-brand-phone" style="margin:2px 0 0; color:#555; font-size:0.9rem;"></div>
+          </div>
         </div>
 
-        <div class="card">
-          <div class="section-header">
-            <div class="section-title" id="report-title">Monthly Payroll Report</div>
-          </div>
-          <div class="table-wrap">
-            <table id="reports-table">
-              <!-- Rendered dynamically -->
-            </table>
-            <div id="reports-empty" class="empty-state" style="display:none">
-              <i class="fa-solid fa-file-invoice-dollar"></i>
-              <h3>No report records found</h3>
-              <p>Add employees or log records to populate report data.</p>
-            </div>
+        <div class="section-header">
+          <div class="section-title" id="report-title" data-i18n="monthly_payroll_report">Monthly Payroll Report</div>
+        </div>
+        <div class="table-wrap">
+          <table id="reports-table">
+            <!-- Rendered dynamically -->
+          </table>
+          <div id="reports-empty" class="empty-state" style="display:none">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <h3 data-i18n="no_report_found">No report records found</h3>
+            <p data-i18n="add_emp_records">Add employees or log records to populate report data.</p>
           </div>
         </div>
       </div>
@@ -735,6 +1028,15 @@
         <label class="form-label">Job / Role *</label>
         <input type="text" class="form-input" id="emp-role" placeholder="Software Engineer" />
       </div>
+    </div>
+    <div class="form-group" id="emp-branch-group" style="display:none; margin-bottom: 15px;">
+      <label class="form-label">Branch (Ultra)</label>
+      <select class="form-input select-input" id="emp-branch">
+        <option value="">— Unassigned —</option>
+        <option value="ABC Restaurant">ABC Restaurant</option>
+        <option value="ABC Warehouse">ABC Warehouse</option>
+        <option value="ABC Catering">ABC Catering</option>
+      </select>
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -1124,7 +1426,95 @@
   </div>
 </div>
 
+<!-- PLAN MODAL -->
+<div class="modal-overlay" id="plan-modal-overlay">
+  <div class="modal" style="max-width:420px;text-align:center">
+    <div class="modal-header" style="justify-content:flex-end;border:none;padding-bottom:0">
+      <div class="modal-close" onclick="closePlanModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <div id="plan-modal-icon" style="font-size:3rem;color:var(--accent);margin-bottom:16px"><i class="fa-solid fa-crown"></i></div>
+    <h2 id="plan-modal-title" style="font-family:var(--font-display);font-size:1.6rem;margin-bottom:12px">Payments Coming Soon</h2>
+    <p id="plan-modal-text" style="color:var(--text2);font-size:0.95rem;line-height:1.5;margin-bottom:24px;padding:0 20px">
+      Upgrading will be available soon. For now, you can simulate the plan from Settings.
+    </p>
+    <div class="modal-footer" style="justify-content:center;border:none;padding-top:0">
+      <button class="btn btn-primary" id="plan-modal-nav-btn" onclick="closePlanModal(); navigate('settings')">Go to Settings</button>
+      <button class="btn btn-ghost" onclick="closePlanModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- SALARY SLIP MODAL -->
+<div class="modal-overlay" id="salary-slip-modal-overlay">
+  <div class="modal" style="max-width:600px" id="salary-slip-content">
+    <div class="modal-header hide-print">
+      <div class="modal-title">Salary Slip</div>
+      <div class="modal-close" onclick="closeSalarySlipModal()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <div id="slip-print-area" style="padding: 20px; background: #fff; color: #000; border-radius: 4px;">
+      <!-- branding header -->
+      <div id="slip-branding-header" style="display:flex; align-items:center; border-bottom: 2px solid #ccc; padding-bottom:15px; margin-bottom:20px;">
+        <div id="slip-brand-logo-wrap" style="width: 80px; height: 80px; margin-right: 15px; display:none;">
+          <img id="slip-brand-logo" src="" style="width:100%; height:100%; object-fit:contain;" />
+        </div>
+        <div>
+          <h2 id="slip-brand-name" style="margin:0; font-size:1.5rem; color:#222;"></h2>
+          <div id="slip-brand-address" style="margin:4px 0 0; color:#555; font-size:0.9rem;"></div>
+          <div id="slip-brand-phone" style="margin:2px 0 0; color:#555; font-size:0.9rem;"></div>
+        </div>
+        <div style="margin-left:auto; text-align:right;">
+          <h3 style="margin:0; font-size:1.2rem; color:#555;">SALARY SLIP</h3>
+          <div id="slip-date" style="font-size:0.9rem; color:#777;"></div>
+        </div>
+      </div>
+      <!-- employee info -->
+      <div style="display:flex; justify-content:space-between; margin-bottom: 20px;">
+        <div>
+          <strong>Employee Name:</strong> <span id="slip-emp-name"></span><br/>
+          <strong>Role:</strong> <span id="slip-emp-role"></span>
+        </div>
+        <div style="text-align:right;">
+          <strong>Interval:</strong> <span id="slip-emp-interval"></span><br/>
+          <strong>Status:</strong> <span id="slip-emp-status"></span>
+        </div>
+      </div>
+      <!-- salary breakdown -->
+      <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+        <thead>
+          <tr style="background:#f5f5f5; border-bottom:1px solid #ddd;">
+            <th style="padding:8px; text-align:left;">Description</th>
+            <th style="padding:8px; text-align:right;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:8px; border-bottom:1px solid #eee;">Base Salary</td>
+            <td style="padding:8px; border-bottom:1px solid #eee; text-align:right;" id="slip-base"></td>
+          </tr>
+          <tr>
+            <td style="padding:8px; border-bottom:1px solid #eee;">Attendance Deductions</td>
+            <td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:#d32f2f;" id="slip-attn"></td>
+          </tr>
+          <tr>
+            <td style="padding:8px; border-bottom:1px solid #eee;">Loan Deductions</td>
+            <td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:#d32f2f;" id="slip-loan"></td>
+          </tr>
+          <tr style="background:#fafafa; font-weight:bold;">
+            <td style="padding:12px 8px;">Net Payable</td>
+            <td style="padding:12px 8px; text-align:right; font-size:1.1rem;" id="slip-net"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer hide-print">
+      <button class="btn btn-ghost" onclick="closeSalarySlipModal()">Close</button>
+      <button class="btn btn-primary" onclick="printSalarySlip()"><i class="fa-solid fa-print"></i> Print PDF</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST CONTAINER -->
+
 <div class="toast-container" id="toast-container"></div>
 
 <!-- ============================================================
@@ -1153,6 +1543,7 @@
 <script src="js/loans.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/reports.js"></script>
+<script src="js/analytics.js"></script>
 
 <!-- Main Page Initialization Loader -->
 <script>

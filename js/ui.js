@@ -29,8 +29,35 @@ function startApp() {
   // Force initial DOM translation
   translateDOM();
 
+  updateSidebarPlanBadge();
   updateLoanBadge();
+  updateBranchUIVisibility();
   navigate('dashboard');
+}
+
+/**
+ * Updates the visibility of the global branch selector based on the current plan.
+ */
+function updateBranchUIVisibility() {
+  const selector = document.getElementById('global-branch-selector');
+  if (selector) {
+    if (isUltraUser()) {
+      selector.style.display = 'inline-block';
+    } else {
+      selector.style.display = 'none';
+      currentBranch = 'all'; // Reset to all if downgraded
+      selector.value = 'all';
+    }
+  }
+}
+
+/**
+ * Handles switching the global branch and re-renders the current page.
+ * @param {string} branchVal - The selected branch or 'all'
+ */
+function changeGlobalBranch(branchVal) {
+  currentBranch = branchVal;
+  navigate(currentPage);
 }
 
 /**
@@ -41,6 +68,62 @@ function updateUserUI() {
   const name = currentUser.name || currentUser.email.split('@')[0];
   document.getElementById('sidebar-name').textContent = name;
   document.getElementById('sidebar-avatar').textContent = name.charAt(0).toUpperCase();
+  
+  const gbSel = document.getElementById('global-branch-selector');
+  if (gbSel) {
+    gbSel.style.display = isUltraUser() ? '' : 'none';
+  }
+  populateBranchDropdowns();
+
+  // Custom Branding Injection
+  const settings = getSettings();
+  const branding = settings.branding || {};
+  const logoTextEl = document.querySelector('.sidebar-logo-text');
+  const logoIconEl = document.querySelector('.sidebar-logo-icon');
+  
+  if (isUltraUser() && branding.name) {
+    logoTextEl.textContent = branding.name;
+  } else {
+    logoTextEl.textContent = 'WorkForce';
+  }
+  
+  if (isUltraUser() && branding.logo) {
+    logoIconEl.innerHTML = `<img src="${esc(branding.logo)}" style="width:100%; height:100%; object-fit:contain; border-radius:inherit;" />`;
+    logoIconEl.style.background = 'transparent';
+  } else {
+    logoIconEl.innerHTML = '<i class="fa-solid fa-briefcase"></i>';
+    logoIconEl.style.background = 'var(--accent)';
+  }
+}
+
+/**
+ * Dynamically populates the branch dropdowns with user's custom branches.
+ */
+function populateBranchDropdowns() {
+  const branches = getBranches();
+  
+  const globalSel = document.getElementById('global-branch-selector');
+  if (globalSel) {
+    const prevGlobal = globalSel.value;
+    globalSel.innerHTML = '<option value="all">All Branches</option>' + 
+      branches.map(b => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    if (branches.includes(prevGlobal) || prevGlobal === 'all') {
+      globalSel.value = prevGlobal;
+    } else {
+      globalSel.value = 'all';
+      currentBranch = 'all';
+    }
+  }
+
+  const empSel = document.getElementById('emp-branch');
+  if (empSel) {
+    const prevEmp = empSel.value;
+    empSel.innerHTML = '<option value="">— Unassigned —</option>' + 
+      branches.map(b => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    if (branches.includes(prevEmp) || prevEmp === '') {
+      empSel.value = prevEmp;
+    }
+  }
 }
 
 /**
@@ -80,8 +163,9 @@ function navigate(page) {
     loans: 'Loans & Advances',
     notes: 'Notes',
     settings: 'Settings',
-    upgrade: 'Upgrade',
-    reports: 'Reports'
+    upgrade: 'Plans & Pricing',
+    reports: 'Reports',
+    analytics: 'Analytics'
   };
   document.getElementById('topbar-title').textContent = titles[page] || 'WorkForce';
 
@@ -93,6 +177,7 @@ function navigate(page) {
   else if (page === 'settings') renderSettings();
   else if (page === 'upgrade') renderUpgradePage();
   else if (page === 'reports') renderReportsPage();
+  else if (page === 'analytics') renderAnalyticsPage();
 
   closeSidebar();
 }
@@ -342,50 +427,83 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Renders active status states on the Upgrade Pricing page.
+ * Renders active status states on the Upgrade Pricing page for 3 plans.
  */
 function renderUpgradePage() {
-  const isPro = isProUser();
-  const freeBadge = document.getElementById('free-plan-badge');
-  const proBadge = document.getElementById('pro-active-badge');
-  const proBtn = document.getElementById('upgrade-pro-btn');
+  const plan = getCurrentPlan().plan; // 'base', 'pro', or 'ultra'
+  updateSidebarPlanBadge();
 
-  if (freeBadge && proBadge && proBtn) {
-    if (isPro) {
-      freeBadge.textContent = t('downgrade_to_free');
-      freeBadge.style.cursor = 'pointer';
-      freeBadge.style.borderStyle = 'solid';
-      freeBadge.style.color = 'var(--red)';
-      freeBadge.style.borderColor = 'rgba(248, 113, 113, 0.3)';
-      freeBadge.setAttribute('onclick', 'changePlanSimulation("free")');
-
-      proBadge.style.display = '';
-      proBadge.textContent = t('current_plan_pro');
-      proBtn.style.display = 'none';
+  // Base plan badge
+  const baseBadge = document.getElementById('base-plan-badge');
+  if (baseBadge) {
+    if (plan === 'base') {
+      baseBadge.textContent = '✓ ' + t('current_plan_free').replace('Current Plan: ', '');
+      baseBadge.style.color = 'var(--accent)';
+      baseBadge.style.borderColor = 'var(--accent)';
+      baseBadge.style.borderStyle = 'solid';
+      baseBadge.onclick = null;
+      baseBadge.style.cursor = 'default';
     } else {
-      freeBadge.textContent = t('current_plan_free');
-      freeBadge.style.cursor = 'default';
-      freeBadge.style.borderStyle = 'dashed';
-      freeBadge.style.color = 'var(--text3)';
-      freeBadge.style.borderColor = 'var(--border2)';
-      freeBadge.removeAttribute('onclick');
+      baseBadge.textContent = t('downgrade_to_free');
+      baseBadge.style.color = 'var(--text3)';
+      baseBadge.style.borderColor = 'var(--border2)';
+      baseBadge.style.borderStyle = 'dashed';
+      baseBadge.onclick = () => changePlanSimulation('base');
+      baseBadge.style.cursor = 'pointer';
+    }
+  }
 
-      proBadge.style.display = 'none';
+  // Pro plan button & active badge
+  const proBtn = document.getElementById('upgrade-pro-btn');
+  const proActiveBadge = document.getElementById('pro-active-badge');
+  if (proBtn && proActiveBadge) {
+    if (plan === 'pro') {
+      proBtn.style.display = 'none';
+      proActiveBadge.style.display = '';
+      proActiveBadge.textContent = '✦ ' + t('current_plan_pro');
+      proActiveBadge.onclick = null;
+      proActiveBadge.style.cursor = 'default';
+    } else if (plan === 'ultra') {
+      proBtn.style.display = 'none';
+      proActiveBadge.style.display = '';
+      proActiveBadge.textContent = t('downgrade_to_pro') || 'Downgrade to Pro';
+      proActiveBadge.style.cursor = 'pointer';
+      proActiveBadge.onclick = () => changePlanSimulation('pro');
+    } else {
       proBtn.style.display = '';
-      proBtn.textContent = t('upgrade_to_pro');
+      proActiveBadge.style.display = 'none';
+    }
+  }
+
+  // Ultra plan button & active badge
+  const ultraBtn = document.getElementById('upgrade-ultra-btn');
+  const ultraActiveBadge = document.getElementById('ultra-active-badge');
+  if (ultraBtn && ultraActiveBadge) {
+    if (plan === 'ultra') {
+      ultraBtn.style.display = 'none';
+      ultraActiveBadge.style.display = '';
+      ultraActiveBadge.textContent = '✦ ' + (t('current_plan_ultra') || 'Current Plan: Ultra');
+    } else {
+      ultraBtn.style.display = '';
+      ultraActiveBadge.style.display = 'none';
     }
   }
 }
 
 /**
- * Handles upgrade payment alert message click action.
+ * Handles upgrade click on Pro or Ultra plan buttons.
+ * @param {string} targetPlan - 'pro' or 'ultra'
  */
-function handleUpgradeClick() {
-  openPlanModal(
-    t('payments_coming_soon_title'),
+function handleUpgradeClick(targetPlan) {
+  const labels = { pro: 'Pro', ultra: 'Ultra' };
+  openConfirm(
+    t('upgrade_to_pro').replace('Pro', labels[targetPlan]),
     t('payments_coming_soon_text'),
-    'fa-crown',
-    false
+    t('upgrade_to_pro').replace('Pro', labels[targetPlan]),
+    () => {
+      changePlanSimulation(targetPlan);
+      showToast('Successfully upgraded to ' + labels[targetPlan] + '!', 'success');
+    }
   );
 }
 
@@ -410,3 +528,66 @@ function closePlanModal() {
   const overlayEl = document.getElementById('plan-modal-overlay');
   if (overlayEl) overlayEl.classList.remove('active');
 }
+
+/**
+ * Toggles the right activity sidebar.
+ */
+function toggleActivitySidebar() {
+  document.body.classList.toggle('has-activity-sidebar');
+  if (document.body.classList.contains('has-activity-sidebar')) {
+    renderActivitySidebar();
+  }
+}
+
+/**
+ * Renders the right activity log from storage.
+ */
+function renderActivitySidebar() {
+  const listEl = document.getElementById('right-activity-list');
+  if (!listEl) return;
+  const logs = getActivityLogs();
+  if (logs.length === 0) {
+    listEl.innerHTML = `
+      <div class="empty-state" style="padding:30px">
+        <i class="fa-solid fa-clock" style="font-size:1.8rem;margin-bottom:10px;display:block"></i>
+        <p>No recent activity</p>
+      </div>`;
+  } else {
+    listEl.innerHTML = logs.map(l => `
+      <div class="activity-item">
+        <div class="time">${l.time}</div>
+        <div class="msg">${esc(l.msg)}</div>
+      </div>
+    `).join('');
+  }
+}
+
+/**
+ * Toggles the left sidebar collapsed state.
+ */
+function toggleSidebarCollapse() {
+  const sb = document.getElementById('sidebar');
+  const icon = document.getElementById('sidebar-collapse-icon');
+  if (sb.classList.contains('collapsed')) {
+    sb.classList.remove('collapsed');
+    document.body.classList.remove('sidebar-collapsed');
+    if (icon) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-left'); }
+  } else {
+    sb.classList.add('collapsed');
+    document.body.classList.add('sidebar-collapsed');
+    if (icon) { icon.classList.remove('fa-chevron-left'); icon.classList.add('fa-chevron-right'); }
+  }
+}
+
+/**
+ * Initializes the left sidebar resizer handle drag events.
+ */
+function initSidebarResizer() {
+  const resizer = document.getElementById('sidebar-resizer');
+  if (resizer) resizer.style.display = 'none';
+}
+
+// Initialize resizer on load
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initSidebarResizer, 100);
+});

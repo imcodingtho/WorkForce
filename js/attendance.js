@@ -43,8 +43,10 @@ function saveAttendance(empId, dateStr, status) {
   
   if (status) {
     employees[idx].attendance[dateStr] = status;
+    logActivity(`Attendance updated to ${status} for ${employees[idx].name}`);
   } else {
     delete employees[idx].attendance[dateStr];
+    logActivity(`Attendance cleared for ${employees[idx].name}`);
   }
   
   saveEmployees(currentUser.email, employees);

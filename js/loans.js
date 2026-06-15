@@ -85,7 +85,7 @@ function getLoanStats() {
   const employeesWithLoans = new Set();
   const allLoans = [];
 
-  employees.forEach(e => {
+  getFilteredEmployees().forEach(e => {
     (e.loans || []).forEach(l => {
       totalLoans++;
       totalIssued += parseFloat(l.amount) || 0;
@@ -134,7 +134,7 @@ function renderLoans() {
   const empSelect = document.getElementById('loan-filter-emp');
   const prevVal = empSelect.value;
   empSelect.innerHTML = '<option value="">All Employees</option>' +
-    employees.filter(e => (e.loans || []).length > 0).map(e =>
+    getFilteredEmployees().filter(e => (e.loans || []).length > 0).map(e =>
       `<option value="${e.id}">${esc(e.name)}</option>`
     ).join('');
   empSelect.value = prevVal;
@@ -263,7 +263,7 @@ function openAddLoanModal(preselectedEmpId) {
   // Populate employee select dropdown dynamically
   const sel = document.getElementById('loan-employee-select');
   sel.innerHTML = '<option value="">— Select Employee —</option>' +
-    employees.map(e => `<option value="${e.id}">${esc(e.name)} — ${esc(e.role)}</option>`).join('');
+    getFilteredEmployees().map(e => `<option value="${e.id}">${esc(e.name)} — ${esc(e.role)}</option>`).join('');
 
   if (preselectedEmpId) {
     sel.value = preselectedEmpId;
@@ -345,6 +345,8 @@ function saveLoan() {
 
   if (!employees[idx].loans) employees[idx].loans = [];
   employees[idx].loans.push(newLoan);
+
+  logActivity(`Loan created for ${employees[idx].name} (${formatCurrency(amount)})`);
 
   saveEmployees(currentUser.email, employees);
   closeAddLoanModal();

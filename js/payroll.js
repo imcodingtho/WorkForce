@@ -92,6 +92,7 @@ function togglePaid(id) {
       date: Date.now(),
       amount: finalNetPay
     });
+    logActivity(`Salary paid to ${employees[idx].name} (${formatCurrency(finalNetPay)})`);
   }
 
   saveEmployees(currentUser.email, employees);
@@ -139,8 +140,9 @@ function renderSalary() {
   let pendingAmt = 0;
   let totalAmt = 0;
   let totalDeductions = 0;
+  const emps = getFilteredEmployees();
 
-  employees.forEach(e => {
+  emps.forEach(e => {
     const loanDeduct = getTotalMonthlyDeduction(e);
     const attnDetails = getAttendanceSalaryDetails(e, year, month);
     const finalNetPay = Math.max(0, attnDetails.netSalary - loanDeduct);
@@ -155,22 +157,22 @@ function renderSalary() {
   });
 
   document.getElementById('sal-paid').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${paidAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
-  document.getElementById('sal-paid-n').textContent = employees.filter(e => e.paid).length + ' employee' + (employees.filter(e => e.paid).length !== 1 ? 's' : '');
+  document.getElementById('sal-paid-n').textContent = emps.filter(e => e.paid).length + ' employee' + (emps.filter(e => e.paid).length !== 1 ? 's' : '');
   document.getElementById('sal-pending').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${pendingAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
-  document.getElementById('sal-pending-n').textContent = employees.filter(e => !e.paid).length + ' employee' + (employees.filter(e => !e.paid).length !== 1 ? 's' : '');
+  document.getElementById('sal-pending-n').textContent = emps.filter(e => !e.paid).length + ' employee' + (emps.filter(e => !e.paid).length !== 1 ? 's' : '');
   document.getElementById('sal-total').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${totalAmt.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
   document.getElementById('sal-deductions').innerHTML = `<span class="currency">${getCurrencySymbol()}</span>${totalDeductions.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
 
   const tbody = document.getElementById('salary-tbody');
   const empty = document.getElementById('salary-empty');
 
-  if (employees.length === 0) {
+  if (emps.length === 0) {
     tbody.innerHTML = '';
     empty.style.display = '';
     return;
   }
   empty.style.display = 'none';
-  tbody.innerHTML = employees.map(e => {
+  tbody.innerHTML = emps.map(e => {
     const loanDeduct = getTotalMonthlyDeduction(e);
     const attnDetails = getAttendanceSalaryDetails(e, year, month);
     const netPay = Math.max(0, attnDetails.netSalary - loanDeduct);
@@ -199,6 +201,11 @@ function renderSalary() {
           <div class="toggle-track ${e.paid?'on':''}" id="sal-toggle-${e.id}"><div class="toggle-thumb"></div></div>
         </label>
       </td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openSalarySlipModal('${e.id}')" title="View Salary Slip">
+          <i class="fa-solid fa-file-invoice"></i> View
+        </button>
+      </td>
     </tr>
     `;
   }).join('');
@@ -212,7 +219,7 @@ function renderSalary() {
  * Toggles all employee salary status indicators to Paid.
  */
 function markAllPaid() {
-  employees.forEach(e => {
+  getFilteredEmployees().forEach(e => {
     if (!e.paid) {
       e.paid = true;
       if (!e.payments) e.payments = [];
@@ -233,10 +240,65 @@ function markAllPaid() {
  * Resets all employee salary status indicators to Pending.
  */
 function markAllUnpaid() {
-  employees.forEach(e => e.paid = false);
+  getFilteredEmployees().forEach(e => e.paid = false);
   saveEmployees(currentUser.email, employees);
   renderSalary();
   if (currentPage === 'dashboard') renderDashboard();
   if (currentPage === 'employees') renderEmployees();
   showToast('All employees reset to pending ❌', 'info');
+}
+
+// =========================================================================
+// SALARY SLIP
+// =========================================================================
+
+function openSalarySlipModal(empId) {
+  if (!isUltraUser()) {
+    showToast('Salary Slips with Custom Branding is an Ultra plan feature.', 'error');
+    openPlanModal();
+    return;
+  }
+  
+  const emp = employees.find(e => e.id === empId);
+  if (!emp) return;
+
+  const now = new Date();
+  const loanDeduct = getTotalMonthlyDeduction(emp);
+  const attnDetails = getAttendanceSalaryDetails(emp, now.getFullYear(), now.getMonth());
+  const netPay = Math.max(0, attnDetails.netSalary - loanDeduct);
+
+  document.getElementById('slip-date').textContent = formatDate(now);
+  document.getElementById('slip-emp-name').textContent = emp.name;
+  document.getElementById('slip-emp-role').textContent = emp.role;
+  document.getElementById('slip-emp-interval').textContent = emp.interval + (emp.customDays ? ` (${emp.customDays}d)` : '');
+  document.getElementById('slip-emp-status').textContent = emp.paid ? 'Paid ✅' : 'Pending ❌';
+  
+  document.getElementById('slip-base').textContent = formatCurrency(emp.salary);
+  document.getElementById('slip-attn').textContent = attnDetails.deduction > 0 ? '-' + formatCurrency(attnDetails.deduction) : '—';
+  document.getElementById('slip-loan').textContent = loanDeduct > 0 ? '-' + formatCurrency(loanDeduct) : '—';
+  document.getElementById('slip-net').textContent = formatCurrency(netPay);
+
+  const settings = getSettings();
+  const branding = settings.branding || {};
+  
+  document.getElementById('slip-brand-name').textContent = branding.name || 'WorkForce';
+  document.getElementById('slip-brand-address').textContent = branding.address || '';
+  document.getElementById('slip-brand-phone').textContent = branding.phone || '';
+  
+  if (branding.logo) {
+    document.getElementById('slip-brand-logo-wrap').style.display = 'block';
+    document.getElementById('slip-brand-logo').src = branding.logo;
+  } else {
+    document.getElementById('slip-brand-logo-wrap').style.display = 'none';
+  }
+
+  document.getElementById('salary-slip-modal-overlay').classList.add('active');
+}
+
+function closeSalarySlipModal() {
+  document.getElementById('salary-slip-modal-overlay').classList.remove('active');
+}
+
+function printSalarySlip() {
+  window.print();
 }
