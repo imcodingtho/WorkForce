@@ -66,6 +66,9 @@ function changeCurrency(curr) {
   else if (currentPage === 'salary') renderSalary();
   else if (currentPage === 'loans') renderLoans();
   else if (currentPage === 'settings') renderSettings();
+  else if (currentPage === 'upgrade') renderUpgradePage();
+  else if (currentPage === 'reports') renderReportsPage();
+  else if (currentPage === 'analytics') renderAnalyticsPage();
   showToast(t('toast_settings_saved'), 'success');
 }
 

@@ -247,6 +247,36 @@ function formatCurrency(n) {
 }
 
 /**
+ * Plan prices in each currency (base prices, not conversions).
+ * These are the actual prices we charge in each currency.
+ */
+const planPrices = {
+  INR: { pro: 499, ultra: 1499 },
+  USD: { pro: 5.99, ultra: 17.99 },
+  EUR: { pro: 5.49, ultra: 16.49 },
+  GBP: { pro: 4.79, ultra: 14.29 },
+  AED: { pro: 21.99, ultra: 65.99 },
+  CAD: { pro: 7.99, ultra: 23.99 },
+  AUD: { pro: 8.99, ultra: 26.99 },
+  JPY: { pro: 899, ultra: 2699 }
+};
+
+/**
+ * Updates the plan prices on the upgrade page based on the current currency.
+ */
+function updatePlanPrices() {
+  const curr = getCurrency();
+  const symbol = getCurrencySymbol();
+  const prices = planPrices[curr] || planPrices['INR'];
+
+  const proEl = document.getElementById('pro-plan-price');
+  const ultraEl = document.getElementById('ultra-plan-price');
+
+  if (proEl) proEl.innerHTML = `<span class="currency">${symbol}</span>${prices.pro.toLocaleString('en-US')}`;
+  if (ultraEl) ultraEl.innerHTML = `<span class="currency">${symbol}</span>${prices.ultra.toLocaleString('en-US')}`;
+}
+
+/**
  * Formats a timestamp into a readable date string (e.g., Jun 14, 2026).
  * @param {number} ts - The millisecond timestamp.
  * @returns {string} Formatted date.
@@ -432,6 +462,7 @@ window.addEventListener('DOMContentLoaded', () => {
 function renderUpgradePage() {
   const plan = getCurrentPlan().plan; // 'base', 'pro', or 'ultra'
   updateSidebarPlanBadge();
+  updatePlanPrices();
 
   // Base plan badge
   const baseBadge = document.getElementById('base-plan-badge');
