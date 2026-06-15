@@ -14,13 +14,22 @@
  */
 function calcNextPayment(emp) {
   const now = new Date();
-  const added = new Date(emp.dateAdded);
+  
+  // Use paymentStartDate if set, otherwise fallback to dateAdded
+  const baseDate = emp.paymentStartDate ? new Date(emp.paymentStartDate) : new Date(emp.dateAdded);
+  
   let days = 30;
   if (emp.interval === 'weekly') days = 7;
   else if (emp.interval === 'daily') days = 1;
   else if (emp.interval === 'custom' && emp.customDays) days = parseInt(emp.customDays);
 
-  let next = new Date(added);
+  let next = new Date(baseDate);
+  // If the base date is in the future, the next payment is simply the base date.
+  if (next > now) {
+    return next;
+  }
+  
+  // Otherwise, advance by the interval until it is in the future
   while (next <= now) {
     next.setDate(next.getDate() + days);
   }

@@ -105,6 +105,21 @@
    ===================================================== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+input, select, textarea, button {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Autofill styling overrides to ensure text visibility */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text) !important;
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg3) inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 html { font-size: 15px; }
 
 body {

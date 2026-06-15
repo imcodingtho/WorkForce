@@ -356,6 +356,7 @@ function openEmployeeModal(id) {
     document.getElementById('emp-paid').value = emp.paid ? 'paid' : 'unpaid';
     document.getElementById('emp-notes').value = emp.notes || '';
     document.getElementById('emp-custom-days').value = emp.customDays || '';
+    document.getElementById('emp-payment-start').value = emp.paymentStartDate ? formatDateInput(emp.paymentStartDate) : '';
     if (document.getElementById('emp-branch')) {
       document.getElementById('emp-branch').value = emp.branch || '';
     }
@@ -371,6 +372,7 @@ function openEmployeeModal(id) {
     document.getElementById('emp-paid').value = 'unpaid';
     document.getElementById('emp-notes').value = '';
     document.getElementById('emp-custom-days').value = '';
+    document.getElementById('emp-payment-start').value = '';
     if (document.getElementById('emp-branch')) {
       const globalBranch = document.getElementById('global-branch-selector') ? document.getElementById('global-branch-selector').value : '';
       document.getElementById('emp-branch').value = globalBranch;
@@ -417,6 +419,7 @@ function saveEmployee() {
   const salary = parseFloat(document.getElementById('emp-salary').value);
   const interval = document.getElementById('emp-interval').value;
   const customDays = document.getElementById('emp-custom-days').value;
+  const paymentStartVal = document.getElementById('emp-payment-start').value;
   const phone = document.getElementById('emp-phone').value.trim();
   const paid = document.getElementById('emp-paid').value === 'paid';
   const notes = document.getElementById('emp-notes').value.trim();
@@ -443,14 +446,16 @@ function saveEmployee() {
     return;
   }
 
+  const paymentStartDate = parseInputDate(paymentStartVal);
+
   if (id) {
     const idx = employees.findIndex(e => e.id === id);
     if (idx > -1) {
-      employees[idx] = { ...employees[idx], name, role, salary, interval, customDays: customDays || null, phone, paid, notes, branch };
+      employees[idx] = { ...employees[idx], name, role, salary, interval, customDays: customDays || null, phone, paid, notes, branch, paymentStartDate };
       showToast('Employee updated successfully.', 'success');
     }
   } else {
-    employees.unshift({ id: uid(), name, role, salary, interval, customDays: customDays || null, phone, paid, notes, branch, dateAdded: Date.now(), loans: [], payments: [] });
+    employees.unshift({ id: uid(), name, role, salary, interval, customDays: customDays || null, phone, paid, notes, branch, dateAdded: Date.now(), loans: [], payments: [], paymentStartDate });
     showToast(`${name} added to the team!`, 'success');
   }
 

@@ -269,6 +269,8 @@ function exportData(type) {
 // CUSTOM BRANCHES & MODULE SETTINGS
 // =========================================================================
 
+let editingBranchIndex = -1;
+
 /**
  * Initializes and renders the module toggle checkboxes.
  */
@@ -331,15 +333,99 @@ function renderBranchSettings() {
   const branches = getBranches();
   const listEl = document.getElementById('settings-branches-list');
   
-  listEl.innerHTML = branches.map(b => `
-    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg3); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border);">
-      <span>${esc(b)}</span>
-      ${['ABC Restaurant', 'ABC Warehouse', 'ABC Catering'].includes(b) ? 
-        `<span style="font-size:0.75rem; color:var(--text3);">(Default)</span>` :
-        `<button class="btn btn-ghost btn-sm" onclick="deleteBranch('${esc(b)}')"><i class="fa-solid fa-trash" style="color:var(--red);"></i></button>`
-      }
-    </div>
-  `).join('');
+  listEl.innerHTML = branches.map((b, index) => {
+    if (editingBranchIndex === index) {
+      return `
+        <div style="display:flex; gap:8px; align-items:center; background:var(--bg3); padding:6px 8px; border-radius:var(--radius-sm); border:1px solid var(--border); width:100%;">
+          <input type="text" class="form-input" id="edit-branch-input-${index}" value="${esc(b)}" style="flex:1; padding:6px 10px; font-size:0.88rem; background:var(--bg2); color:var(--text); border:1px solid var(--border);" />
+          <button class="btn btn-success btn-sm" onclick="saveEditedBranch(${index})" style="padding:6px 10px;"><i class="fa-solid fa-check"></i></button>
+          <button class="btn btn-ghost btn-sm" onclick="cancelEditBranch()" style="padding:6px 10px;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      `;
+    }
+    
+    return `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg3); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); width:100%;">
+        <span style="font-weight:500; color:var(--text);">${esc(b)}</span>
+        <div style="display:flex; gap:4px;">
+          <button class="btn btn-ghost btn-sm" onclick="editBranch(${index})" title="Edit Branch" style="padding:6px 10px;"><i class="fa-solid fa-pen-to-square" style="color:var(--accent);"></i></button>
+          <button class="btn btn-ghost btn-sm" onclick="deleteBranch('${esc(b)}')" title="Delete Branch" style="padding:6px 10px;"><i class="fa-solid fa-trash" style="color:var(--red);"></i></button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
+ * Sets the active branch index to edit mode.
+ * @param {number} index - Index of branch in list
+ */
+function editBranch(index) {
+  editingBranchIndex = index;
+  renderBranchSettings();
+  setTimeout(() => {
+    const input = document.getElementById(`edit-branch-input-${index}`);
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }, 50);
+}
+
+/**
+ * Cancels editing mode.
+ */
+function cancelEditBranch() {
+  editingBranchIndex = -1;
+  renderBranchSettings();
+}
+
+/**
+ * Saves the edited branch name and updates employee records if changed.
+ * @param {number} index - Index of branch in list
+ */
+function saveEditedBranch(index) {
+  const input = document.getElementById(`edit-branch-input-${index}`);
+  if (!input) return;
+  const newVal = input.value.trim();
+  if (!newVal) {
+    showToast('Branch name cannot be empty.', 'error');
+    return;
+  }
+  
+  const branches = getBranches();
+  const oldVal = branches[index];
+  
+  if (newVal === oldVal) {
+    editingBranchIndex = -1;
+    renderBranchSettings();
+    return;
+  }
+  
+  if (branches.includes(newVal)) {
+    showToast('Branch name already exists.', 'error');
+    return;
+  }
+  
+  branches[index] = newVal;
+  saveBranches(branches);
+  
+  // Update employees associated with this branch
+  let updatedCount = 0;
+  employees.forEach(emp => {
+    if (emp.branch === oldVal) {
+      emp.branch = newVal;
+      updatedCount++;
+    }
+  });
+  if (updatedCount > 0) {
+    saveEmployees(employees);
+  }
+  
+  editingBranchIndex = -1;
+  renderBranchSettings();
+  if (typeof populateBranchDropdowns === 'function') populateBranchDropdowns();
+  showToast(`Branch renamed to "${newVal}".`, 'success');
 }
 
 /**
@@ -367,7 +453,7 @@ function addNewBranch() {
 }
 
 /**
- * Deletes a custom branch.
+ * Deletes a branch.
  * @param {string} b - Branch name
  */
 function deleteBranch(b) {
@@ -376,6 +462,19 @@ function deleteBranch(b) {
   branches = branches.filter(branch => branch !== b);
   saveBranches(branches);
   
+  // Update employees: remove branch association
+  let updatedCount = 0;
+  employees.forEach(emp => {
+    if (emp.branch === b) {
+      emp.branch = '';
+      updatedCount++;
+    }
+  });
+  if (updatedCount > 0) {
+    saveEmployees(employees);
+  }
+  
+  editingBranchIndex = -1;
   renderBranchSettings();
   if (typeof populateBranchDropdowns === 'function') populateBranchDropdowns();
   showToast(`Branch "${b}" deleted.`, 'info');

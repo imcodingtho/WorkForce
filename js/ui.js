@@ -298,6 +298,19 @@ function formatDateInput(ts) {
 }
 
 /**
+ * Parses an HTML date input string (YYYY-MM-DD) into a local millisecond timestamp.
+ * @param {string} dateStr - Date string from input.
+ * @returns {number|null} Timestamp or null.
+ */
+function parseInputDate(dateStr) {
+  if (!dateStr) return null;
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return null;
+  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])).getTime();
+}
+
+
+/**
  * Resolves initials from a user or employee's full name.
  * @param {string} name - Full name.
  * @returns {string} First letter of first two name words capitalized.

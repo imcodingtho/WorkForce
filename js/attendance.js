@@ -473,12 +473,71 @@ function renderProfilePaymentsHistory() {
   container.innerHTML = payments.map(p => {
     const formattedDate = formatDate(p.date);
     return `
-      <div class="attn-history-item" style="border-left-color: var(--green);">
-        <span class="attn-history-date">${formattedDate}</span>
-        <span>${p.note ? `<span style="font-size:0.75rem;color:var(--text3);margin-right:8px;font-style:italic">${esc(p.note)}</span>` : ''}<strong>${formatCurrency(p.amount)}</strong></span>
+      <div class="attn-history-item" style="border-left-color: var(--green); display: flex; justify-content: space-between; align-items: center; padding: 10px 14px;">
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <span class="attn-history-date" style="font-size: 0.82rem; font-weight: 500;">${formattedDate}</span>
+          ${p.note ? `<span style="font-size:0.72rem;color:var(--text3);font-style:italic">${esc(p.note)}</span>` : ''}
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <strong style="color: var(--green); font-size: 0.95rem;">${formatCurrency(p.amount)}</strong>
+          <button onclick="confirmDeletePayment('${emp.id}', '${p.id}')" title="Delete Payment" style="background: none; border: none; color: var(--red); cursor: pointer; padding: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
       </div>
     `;
   }).join('');
+}
+
+/**
+ * Opens a confirmation overlay to delete a specific payment transaction.
+ * @param {string} empId - Employee ID.
+ * @param {string} paymentId - Payment transaction ID.
+ */
+function confirmDeletePayment(empId, paymentId) {
+  openConfirm(
+    'Delete Payment Record',
+    `Are you sure you want to delete this payment record? This will remove it from the employee's history.`,
+    'Delete',
+    () => deletePayment(empId, paymentId)
+  );
+}
+
+/**
+ * Removes a specific payment transaction and updates the UI.
+ * @param {string} empId - Employee ID.
+ * @param {string} paymentId - Payment transaction ID.
+ */
+function deletePayment(empId, paymentId) {
+  const idx = employees.findIndex(e => e.id === empId);
+  if (idx === -1) return;
+
+  employees[idx].payments = (employees[idx].payments || []).filter(p => p.id !== paymentId);
+  
+  // If no payments are left or we want to reset paid status based on current state, 
+  // we can set paid to false if there are no payments, or keep it.
+  // Let's set paid to false if they have no payments recorded to keep the status consistent.
+  if ((employees[idx].payments || []).length === 0) {
+    employees[idx].paid = false;
+  }
+
+  saveEmployees(currentUser.email, employees);
+  
+  // Re-render UI components
+  renderProfilePaymentsHistory();
+  
+  // Update status badge in profile header overview tab if visible
+  const statusBadge = document.getElementById('profile-status');
+  if (statusBadge) {
+    statusBadge.className = 'badge ' + (employees[idx].paid ? 'badge-paid' : 'badge-unpaid');
+    statusBadge.textContent = employees[idx].paid ? t('paid_badge') : t('pending');
+  }
+
+  if (currentPage === 'dashboard') renderDashboard();
+  else if (currentPage === 'employees') renderEmployees();
+  else if (currentPage === 'salary') renderSalary();
+  
+  showToast('Payment record deleted.', 'info');
 }
 
 /**
